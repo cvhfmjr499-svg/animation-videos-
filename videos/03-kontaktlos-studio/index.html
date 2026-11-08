@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <script src="assets/lib/three.min.js"></script>
+    <script src="assets/lib/kit3d.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #121013; }
+      #root { position: relative; width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="20" data-width="1080" data-height="1920">
+      <div id="film" data-composition-id="film" data-composition-src="compositions/film.html" data-start="0" data-duration="20" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920"></div>
+      <audio id="sfx-glide" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="4.5" data-duration="5.5" data-track-index="10" data-volume="0.35"></audio>
+      <audio id="sfx-led1" class="clip" src="assets/sfx/pop.mp3" data-start="8.0" data-duration="0.72" data-track-index="11" data-volume="0.3"></audio>
+      <audio id="sfx-riser" class="clip" src="assets/sfx/riser.mp3" data-start="8.53" data-media-start="1.4" data-duration="2.2" data-track-index="12" data-volume="0.3"></audio>
+      <audio id="sfx-led2" class="clip" src="assets/sfx/pop.mp3" data-start="11.0" data-duration="0.72" data-track-index="11" data-volume="0.3"></audio>
+      <audio id="sfx-led3" class="clip" src="assets/sfx/pop.mp3" data-start="12.6" data-duration="0.72" data-track-index="11" data-volume="0.3"></audio>
+      <audio id="sfx-led4" class="clip" src="assets/sfx/pop.mp3" data-start="14.6" data-duration="0.72" data-track-index="11" data-volume="0.3"></audio>
+      <audio id="sfx-ok" class="clip" src="assets/sfx/ping.mp3" data-start="15.4" data-duration="1.32" data-track-index="13" data-volume="0.6"></audio>
+      <audio id="sfx-lift" class="clip" src="assets/sfx/whoosh-short.mp3" data-start="17.2" data-duration="0.57" data-track-index="10" data-volume="0.35"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

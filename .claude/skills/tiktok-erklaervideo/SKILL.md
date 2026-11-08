@@ -91,3 +91,15 @@ Jede Zahl stimmt und ist geprüft; Quelle/Annahme steht als Fußnote im Bild.
 5. `npx hyperframes check --json` → Fehler beheben; `npx hyperframes snapshot --review` → Sheets ansehen
    (Überlappungen, Lesbarkeit am Handy, Text im Band).
 6. Rendern: `npx hyperframes render -q delivery -o renders/<projekt>.mp4`. Renders nicht committen.
+
+## 6. Realismus (Lehre aus Feedback: „sieht billig aus“)
+
+Ziel ist der Referenz-Look, KEIN Neon. Bewährt in `videos/03-kontaktlos-studio/`:
+- `KIT.studioEnv` (große Softboxen) als `scene.environment`, Hintergrund #121013, warmer unscharfer Raum
+  (Bokeh-Textur) weit hinten, `KIT.mirrorFloor` für weiche Bodenspiegelung (`k.preRender`).
+- Weiches Licht: DirectionalLight mit `PCFShadowMap` + `shadow.radius` ≈ 9, Hemisphere ≈ 0,5, kein harter Spot.
+- Materialien satiniert/gebürstet (roughness 0,4–0,6), Metall nur mit weichen Reflexionen, keine Überstrahlung.
+- `KIT.post` dezent: strength ≈ 0,2, threshold ≈ 1,6, grain ≈ 0,012. Leuchtfarben nur mit Bedeutung.
+- Innenleben zeigen = mattiertes, helles, halbtransparentes Gehäuse (wie das „Housing“ der Referenz).
+- Effekte fein: Feldlinien 1–2 px türkis, wenige Ringe. Kamera ruhig, harte Schnitte zwischen klaren Einstellungen.
+- Hochformat: horizontal sieht man nur ~0,3 × Abstand (fov 30) → Kamera weit genug weg.
