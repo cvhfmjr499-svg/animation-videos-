@@ -1,59 +1,25 @@
 <template>
   <style>
     #root { position: absolute; inset: 0; overflow: hidden; }
-    #s3-world { position: absolute; inset: 0; }
-    #s3-svg { position: absolute; inset: 0; }
-    .s3-lbl { position: absolute; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #ecebef; text-transform: uppercase; white-space: nowrap; }
-    #s3-count { position: absolute; left: 70px; top: 500px; }
+    #s3-cv { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    #s3-vig { position: absolute; inset: 0; }
+    .pin { position: absolute; left: 0; top: 0; pointer-events: none; }
+    .pin i { position: absolute; left: 0; top: 0; width: 2px; background: #e8e7ea; }
+    .pin b { position: absolute; left: 0; top: 0; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; }
+    .pin span { position: absolute; white-space: nowrap; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #ecebef; text-transform: uppercase; }
+    #s3-count { position: absolute; left: 70px; top: 470px; }
     #s3-num { font: 800 120px "Inter", sans-serif; color: #fff; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
     #s3-num small { font-size: 52px; font-weight: 700; margin-left: 10px; }
     #s3-sub { font: 500 28px "Inter", sans-serif; color: #b9b8be; margin-top: 10px; }
     #s3-foot { position: absolute; left: 70px; top: 1290px; font: 400 28px "Inter", sans-serif; color: #8a898f; }
   </style>
   <div id="root" data-composition-id="s3" data-width="1080" data-height="1920">
-    <div id="s3-world">
-      <svg id="s3-svg" width="1080" height="1920" viewBox="0 0 1080 1920">
-        <defs>
-          <linearGradient id="s3-wall" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#c9c4ba" /><stop offset="0.5" stop-color="#efece6" /><stop offset="1" stop-color="#a9a49b" />
-          </linearGradient>
-          <linearGradient id="s3-glass" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#9fd0ff" stop-opacity="0.55" /><stop offset="1" stop-color="#cfe8ff" stop-opacity="0.85" />
-          </linearGradient>
-          <radialGradient id="s3-inglow" cx="0.2" cy="0.5" r="0.7"><stop offset="0" stop-color="#2b3a52" stop-opacity="0.7" /><stop offset="1" stop-color="#2b3a52" stop-opacity="0" /></radialGradient>
-        </defs>
-        <rect x="60" y="760" width="560" height="520" fill="url(#s3-inglow)" />
-        <g id="s3-dots" fill="#8fc8ff"></g>
-        <!-- Rumpfwand im Schnitt -->
-        <rect x="600" y="740" width="70" height="170" rx="6" fill="url(#s3-wall)" />
-        <rect x="600" y="1130" width="70" height="170" rx="6" fill="url(#s3-wall)" />
-        <!-- Fensterscheibe, wölbt sich nach außen -->
-        <path id="s3-pane" d="M 622 910 Q 622 1020 622 1130 L 648 1130 Q 648 1020 648 910 Z" fill="url(#s3-glass)" stroke="#e6f3ff" stroke-width="2" />
-        <!-- Druckpfeile -->
-        <g id="s3-arrows" stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="#fff">
-          <g class="s3-ar"><line x1="430" y1="940" x2="590" y2="940" /><path d="M 604 940 L 584 928 L 584 952 Z" stroke="none" /></g>
-          <g class="s3-ar"><line x1="430" y1="990" x2="590" y2="990" /><path d="M 604 990 L 584 978 L 584 1002 Z" stroke="none" /></g>
-          <g class="s3-ar"><line x1="430" y1="1040" x2="590" y2="1040" /><path d="M 604 1040 L 584 1028 L 584 1052 Z" stroke="none" /></g>
-          <g class="s3-ar"><line x1="430" y1="1090" x2="590" y2="1090" /><path d="M 604 1090 L 584 1078 L 584 1102 Z" stroke="none" /></g>
-        </g>
-        <!-- Konzertflügel (Silhouette) -->
-        <g id="s3-piano" opacity="0"><g transform="translate(110 1010)">
-          <path d="M 0 60 L 0 20 Q 0 0 20 0 L 150 0 Q 230 0 260 50 Q 280 80 330 85 Q 360 90 360 115 L 360 130 L 0 130 Z" fill="#e9e7e3" />
-          <rect x="0" y="128" width="360" height="14" fill="#bdb9b2" />
-          <rect x="18" y="142" width="14" height="70" fill="#bdb9b2" />
-          <rect x="300" y="142" width="14" height="70" fill="#bdb9b2" />
-          <rect x="150" y="142" width="14" height="60" fill="#bdb9b2" />
-          <path d="M 30 0 L 120 -90" stroke="#bdb9b2" stroke-width="6" />
-        </g></g>
-        <g id="s3-co" opacity="0">
-          <line x1="740" y1="1020" x2="660" y2="1020" stroke="#e8e7ea" stroke-width="2" />
-        </g>
-      </svg>
-      <div class="s3-lbl" id="s3-lbl-in" style="left: 70px; top: 1220px; opacity: 0;">Innen</div>
-      <div class="s3-lbl" id="s3-lbl-out" style="left: 900px; top: 1220px; opacity: 0;">Außen</div>
-      <div class="s3-lbl" id="s3-lbl-pane" style="left: 752px; top: 1005px; opacity: 0;">Fenster</div>
-      <div class="s3-lbl" id="s3-lbl-piano" style="left: 110px; top: 870px; opacity: 0;">Konzertflügel ≈ 480 kg</div>
-    </div>
+    <canvas id="s3-cv" width="1080" height="1920"></canvas>
+    <div id="s3-vig"></div>
+    <div class="pin" id="s3-pin-in" style="opacity: 0;"><span style="left: -60px; top: -20px;">Innen</span></div>
+    <div class="pin" id="s3-pin-out" style="opacity: 0;"><span style="left: -60px; top: -20px;">Außen</span></div>
+    <div class="pin" id="s3-pin-pane" style="opacity: 0;"><b></b><i style="height: 90px;"></i><span style="left: 14px; top: 70px;">Fenster</span></div>
+    <div class="pin" id="s3-pin-piano" style="opacity: 0;"><b></b><i style="height: 80px; top: -80px;"></i><span style="left: -60px; top: -122px;">Konzertflügel ≈ 480 kg</span></div>
     <div id="s3-count" style="opacity: 0;">
       <div id="s3-num"><span id="s3-val">0</span><small>kg</small></div>
       <div id="s3-sub">Kraft auf ein Fenster</div>
@@ -62,34 +28,99 @@
   </div>
   <script>
     (function () {
-      let seed = 4242;
-      const rnd = () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-      const NS = "http://www.w3.org/2000/svg";
-      const g = document.getElementById("s3-dots"); const dots = [];
-      for (let i = 0; i < 150; i++) { const c = document.createElementNS(NS, "circle"); c.setAttribute("r", 4); c.setAttribute("opacity", 0.8); g.appendChild(c); dots.push({ c, x: 80 + rnd() * 500, y: 760 + rnd() * 520, ph: rnd() * 6.28, w: 0.8 + rnd() * 1.4 }); }
-      for (let i = 0; i < 20; i++) { const c = document.createElementNS(NS, "circle"); c.setAttribute("r", 4); c.setAttribute("opacity", 0.5); g.appendChild(c); dots.push({ c, x: 700 + rnd() * 320, y: 760 + rnd() * 520, ph: rnd() * 6.28, w: 0.6 + rnd() }); }
+      const T = THREE;
+      document.getElementById("s3-vig").style.background = KIT.VIG;
+      const k = KIT.stage(document.getElementById("s3-cv"), { fov: 30, exposure: 1.0, envIntensity: 0.7 });
+      const { scene, camera } = k;
+      const rnd = KIT.rng(4242);
+      const FY = -0.95;
+      KIT.floor(scene, FY, 0x121116);
+      // Wandstück (in der YZ-Ebene), innen = -x, außen = +x
+      const wall = new T.Mesh(KIT.frame(1.3, 1.9, 0.08, 0.3, 0.42, 0.13, 0.12, 0.01), [KIT.mat.plastic(0xe7e3db, 0.5), KIT.mat.plastic(0x9c968c, 0.6)]);
+      wall.rotation.y = Math.PI / 2; wall.position.y = FY + 0.95 + 0.0; wall.castShadow = true; wall.receiveShadow = true; scene.add(wall);
+      // Scheibe, wölbt sich nach außen
+      const pg = new T.PlaneGeometry(0.34, 0.46, 24, 24); pg.rotateY(Math.PI / 2);
+      const base = pg.attributes.position.array.slice();
+      const pane = new T.Mesh(pg, KIT.mat.glass(0xbfe0ff, 0.45)); scene.add(pane);
+      const bulge = (b) => {
+        const a = pg.attributes.position.array;
+        for (let i = 0; i < a.length; i += 3) { const y = base[i + 1] / 0.23, z = base[i + 2] / 0.17; a[i] = base[i] + b * Math.max(0, (1 - y * y)) * Math.max(0, (1 - z * z)); }
+        pg.attributes.position.needsUpdate = true; pg.computeVertexNormals();
+      };
+      // Druckpfeile
+      const arrowMat = new T.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.6, roughness: 0.3 });
+      const arrows = [];
+      for (const [y, z] of [[0.12, -0.08], [0.12, 0.08], [-0.02, 0], [-0.14, -0.08], [-0.14, 0.08]]) {
+        const g = new T.Group();
+        const sh = new T.Mesh(new T.CylinderGeometry(0.012, 0.012, 0.32, 16), arrowMat); sh.rotation.z = Math.PI / 2; sh.position.x = -0.16; g.add(sh);
+        const hd = new T.Mesh(new T.ConeGeometry(0.035, 0.08, 24), arrowMat); hd.rotation.z = -Math.PI / 2; hd.position.x = 0.02; g.add(hd);
+        g.position.set(-0.1, y, z); scene.add(g); arrows.push(g);
+      }
+      // Luftteilchen
+      const dotG = new T.SphereGeometry(0.009, 10, 8);
+      const mk = (n, place, c) => { const m = new T.InstancedMesh(dotG, new T.MeshBasicMaterial({ color: c, toneMapped: false }), n); const d = []; for (let i = 0; i < n; i++) d.push({ p: place(), ph: rnd() * 6.28, w: 0.8 + rnd() * 1.4 }); scene.add(m); return { m, d }; };
+      const din = mk(380, () => new T.Vector3(-0.15 - rnd() * 1.4, -0.85 + rnd() * 1.75, -0.7 + rnd() * 1.4), 0x9fd2ff);
+      const dout = mk(40, () => new T.Vector3(0.15 + rnd() * 1.4, -0.85 + rnd() * 1.75, -0.7 + rnd() * 1.4), 0x6fa8de);
+      // Konzertflügel (schwarz, Hochglanz)
+      const piano = new T.Group();
+      const ps = new T.Shape(); ps.moveTo(0, 0); ps.lineTo(0.55, 0); ps.lineTo(0.55, 0.45); ps.bezierCurveTo(0.55, 0.8, 0.35, 0.95, 0.15, 1.15); ps.bezierCurveTo(0.05, 1.3, 0.0, 1.4, -0.05, 1.45); ps.bezierCurveTo(-0.2, 1.5, -0.32, 1.45, -0.35, 1.25); ps.lineTo(-0.35, 0); ps.lineTo(0, 0);
+      const black = new T.MeshPhysicalMaterial({ color: 0x1b1b20, roughness: 0.2, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.4 });
+      const body = new T.Mesh(new T.ExtrudeGeometry(ps, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 3, curveSegments: 32 }), black);
+      body.rotation.x = -Math.PI / 2; body.position.y = 0.55; body.castShadow = true; piano.add(body);
+      const lid = new T.Mesh(new T.ExtrudeGeometry(ps, { depth: 0.012, bevelEnabled: false, curveSegments: 32 }), black);
+      lid.rotation.x = -Math.PI / 2; lid.rotation.y = -0.6; lid.position.set(0.55, 0.87, 0); lid.geometry.translate(-0.55, 0, 0); lid.castShadow = true; piano.add(lid);
+      const keys = new T.Mesh(new T.BoxGeometry(0.9, 0.04, 0.16), KIT.mat.plastic(0xf4f2ee, 0.3)); keys.position.set(0.1, 0.72, 0.08); piano.add(keys);
+      for (const [x, z] of [[-0.25, -0.05], [0.45, -0.05], [0.0, -1.3]]) { const l = new T.Mesh(new T.CylinderGeometry(0.035, 0.028, 0.55, 16), black); l.position.set(x, 0.275, z); l.castShadow = true; piano.add(l); }
+      piano.scale.setScalar(0.5); piano.rotation.y = 0.35;
+      piano.position.set(-1.0, FY, 1.35); piano.visible = false; scene.add(piano);
+      // Licht
+      scene.add(new T.HemisphereLight(0xa8c0ff, 0x101014, 0.2));
+      KIT.keyLight(scene, new T.Vector3(-2.5, 3.0, 2.5), new T.Vector3(-0.3, -0.4, 0), 110).angle = 0.5;
+      const rim = new T.SpotLight(0x9cc8ff, 40, 0, 0.5, 0.8, 2); rim.position.set(2.5, 1.5, -1.5); rim.target.position.set(0, 0, 0); scene.add(rim); scene.add(rim.target);
+      const pl = new T.SpotLight(0xfff1e0, 60, 0, 0.45, 0.8, 2); pl.position.set(-2.5, 2.5, 3.5); pl.castShadow = true; scene.add(pl); scene.add(pl.target);
+      // Pins
+      k.pin(document.getElementById("s3-pin-in"), new T.Vector3(-0.6, -0.8, 1.0));
+      k.pin(document.getElementById("s3-pin-out"), new T.Vector3(0.7, 0.75, -0.6));
+      k.pin(document.getElementById("s3-pin-pane"), new T.Vector3(0.05, -0.22, 0.0));
+      const pinV = new T.Vector3(); k.pin(document.getElementById("s3-pin-piano"), pinV);
+      const st = { b: 0, ar: 0, pianoY: 1.2, az: -0.95 };
+      const mtx = new T.Matrix4(); const clk = { t: 0 };
+      const ray = new T.Raycaster(), plane = new T.Plane(new T.Vector3(0, 1, 0), -FY), hit = new T.Vector3();
+      const update = () => {
+        const t = clk.t;
+        din.d.forEach((q, i) => { mtx.makeTranslation(q.p.x + Math.sin(t * q.w * 2 + q.ph) * 0.03, q.p.y + Math.cos(t * q.w * 1.7 + q.ph) * 0.03, q.p.z + Math.sin(t * q.w + q.ph) * 0.03); din.m.setMatrixAt(i, mtx); });
+        dout.d.forEach((q, i) => { mtx.makeTranslation(q.p.x + Math.sin(t * q.w + q.ph) * 0.06, q.p.y + Math.cos(t * q.w + q.ph) * 0.06, q.p.z); dout.m.setMatrixAt(i, mtx); });
+        din.m.instanceMatrix.needsUpdate = true; dout.m.instanceMatrix.needsUpdate = true;
+        bulge(st.b);
+        arrows.forEach((g, i) => { g.visible = st.ar > 0.01; g.position.x = -0.12 - (1 - st.ar) * 0.4 + Math.sin(t * 9 + i) * 0.008 * st.ar; g.scale.setScalar(Math.max(0.001, st.ar)); });
+        const az = st.az + t * 0.03, r = 7.6;
+        camera.position.set(Math.sin(az) * r, 0.9, Math.cos(az) * r);
+        camera.lookAt(-0.55, -0.5, 0.45);
+        camera.updateMatrixWorld();
+        // Flügel auf festen Bildpunkt (links unten) auf den Boden stellen
+        ray.setFromCamera(new T.Vector2(-0.3, -0.3), camera); ray.ray.intersectPlane(plane, hit);
+        piano.position.set(hit.x, FY + st.pianoY, hit.z); piano.visible = st.pianoY < 1.15; pl.target.position.set(hit.x, FY, hit.z); pl.position.set(hit.x - 1, 2.5, hit.z + 2.5); pl.target.updateMatrixWorld();
+        pinV.set(hit.x, FY + 0.62, hit.z);
+        k.render();
+      };
       const tl = gsap.timeline({ paused: true });
-      const clock = { t: 0 };
-      tl.fromTo(clock, { t: 0 }, { t: 6.5, duration: 6.5, ease: "none", onUpdate: () => {
-        for (const p of dots) { p.c.setAttribute("cx", (p.x + Math.sin(clock.t * p.w * 2 + p.ph) * 9).toFixed(1)); p.c.setAttribute("cy", (p.y + Math.cos(clock.t * p.w * 1.7 + p.ph) * 9).toFixed(1)); }
-      } }, 0);
-      tl.fromTo("#s3-world", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
-      tl.fromTo(["#s3-lbl-in", "#s3-lbl-out"], { opacity: 0 }, { opacity: 1, duration: 0.25, stagger: 0.08 }, 0.3);
-      tl.fromTo("#s3-co", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.5);
-      tl.fromTo("#s3-lbl-pane", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 0.55);
+      tl.eventCallback("onUpdate", () => { clk.t = tl.time(); update(); }); tl.set({}, {}, 6.5);
+      tl.fromTo(st, { az: -0.75 }, { az: -0.95, duration: 1.0, ease: "expo.out" }, 0);
+      tl.fromTo("#s3-cv", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
+      tl.fromTo(["#s3-pin-in", "#s3-pin-out"], { opacity: 0 }, { opacity: 1, duration: 0.25, stagger: 0.08 }, 0.3);
+      tl.fromTo("#s3-pin-pane", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.55);
       tl.fromTo("#s3-foot", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.6);
-      // "drückt": Pfeile schieben, Scheibe wölbt sich
-      tl.fromTo(".s3-ar", { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.45, ease: "expo.out", stagger: 0.06 }, 1.15);
-      tl.fromTo("#s3-pane", { attr: { d: "M 622 910 Q 622 1020 622 1130 L 648 1130 Q 648 1020 648 910 Z" } }, { attr: { d: "M 622 910 Q 652 1020 622 1130 L 648 1130 Q 678 1020 648 910 Z" }, duration: 2.6, ease: "power2.out" }, 1.2);
-      // Zähler bis 510 kg bei "500"
+      tl.fromTo(st, { ar: 0 }, { ar: 1, duration: 0.5, ease: "expo.out" }, 1.15);
+      tl.fromTo(st, { b: 0 }, { b: 0.05, duration: 2.6, ease: "power2.out" }, 1.2);
       tl.fromTo("#s3-count", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 2.5);
       const kg = { v: 0 };
       tl.fromTo(kg, { v: 0 }, { v: 510, duration: 1.4, ease: "expo.out", onUpdate: () => { document.getElementById("s3-val").textContent = Math.round(kg.v); } }, 2.5);
-      // Konzertflügel als Vergleich
-      tl.to(".s3-ar", { opacity: 0.25, duration: 0.3 }, 4.5);
-      tl.fromTo("#s3-piano", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 4.6);
-      tl.fromTo("#s3-lbl-piano", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 4.75);
-      tl.to(["#s3-world", "#s3-count", "#s3-foot"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 6.28);
+      // Flügel fällt herein
+      tl.to(["#s3-pin-in", "#s3-pin-out"], { opacity: 0, duration: 0.2 }, 4.4);
+      tl.fromTo(st, { pianoY: 1.2 }, { pianoY: 0, duration: 0.55, ease: "bounce.out" }, 4.55);
+      tl.fromTo("#s3-pin-piano", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 4.95);
+      tl.to(["#s3-cv", "#s3-count", "#s3-foot", "#s3-pin-pane", "#s3-pin-piano"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 6.28);
+      update();
       window.__timelines["s3"] = tl;
     })();
   </script>
@@ -97,7 +128,7 @@
     /* WARP START */
     (function () {
       const tl = window.__timelines["s3"].__src || window.__timelines["s3"];
-      const w = [[0.0, 0.0], [1.1, 1.045], [2.5, 2.523], [4.4, 4.22], [6.5, 6.087]];
+      const w = [[0.0, 0.0], [1.1, 0.918], [2.5, 2.065], [4.4, 3.682], [6.5, 5.766], [6.5, 5.766]];
       const o = gsap.timeline({ paused: true }); o.__src = tl;
       for (let i = 0; i < w.length - 1; i++) o.fromTo(tl, { time: w[i][0] }, { time: w[i + 1][0], duration: Math.max(0.001, w[i + 1][1] - w[i][1]), ease: "none", immediateRender: false }, w[i][1]);
       window.__timelines["s3"] = o;

@@ -46,7 +46,13 @@ Jede Zahl stimmt und ist geprüft; Quelle/Annahme steht als Fußnote im Bild.
   „Schematisch, Abstände übertrieben“, Quellenangabe.
 - **Wasserzeichen:** nur `@HANDLE` (Oswald, Versalien) rechts bei top 500, `mix-blend-mode: difference`
   (funktioniert auf hell und dunkel). **Kein Instagram-Logo.** Handle ist die Variable `handle`.
-- **Illustrationen:** flaches, sauberes SVG mit weichen Verläufen, Glanzlichtern und Glow; Akzentfarben:
+- **Illustrationen: echtes 3D (Pflicht, keine flachen 2D-Grafiken).** Three.js über `assets/lib/three.min.js`
+  + `assets/lib/kit3d.js` (Bühne, Studio-Envmap, Materialien Plastik/Metall/Glas/Stoff, spiegelnder Boden,
+  Spotlicht mit weichen Schatten, `KIT.pin` für Labels an 3D-Punkten, `KIT.VIG` Abdunklung oben/unten).
+  Objekte schweben im Dunkeln mit Spot-Licht und Abfall ins Schwarz, Kamera fährt immer leicht.
+  3D-Szene zeichnen über `tl.eventCallback("onUpdate", () => { clk.t = tl.time(); update(); })`, NICHT in einer
+  Tween-onUpdate (sonst hinkt das Bild einen Schritt hinterher). Breite beachten: 9:16 mit fov 30 zeigt
+  horizontal nur ~0,56× der Höhe → Kamera weit genug weg. Diagramme dürfen 2D bleiben. Akzentfarben:
   Luft/Feld `#8fc8ff`, Warnung `#ff4d4d`, sicher `#1fbf7a`/`#4fe0a0`, Signal gelb `#ffcf4a`.
   Diagramme: weiße Linie 5 px, graue Achsen, wandernder Punkt mit Halo.
 
@@ -60,9 +66,10 @@ Jede Zahl stimmt und ist geprüft; Quelle/Annahme steht als Fußnote im Bild.
 
 ## 4. Ton
 
-- **Voiceover (Pflicht):** Microsoft-Stimme **Andrew** (`en-US-AndrewMultilingualNeural`, spricht Deutsch) über
-  `edge-tts` (`pip install edge-tts`). `python3 -I tools/voiceover.py videos/<projekt> --target 60`:
-  erzeugt je Satz eine MP3, nimmt die echten Wortzeiten für die Untertitel und **verzerrt die Szenen-Zeit
+- **Voiceover (Pflicht):** native deutsche Microsoft-Stimme **Florian** (`de-DE-FlorianMultilingualNeural`;
+  Andrew klang dem Nutzer schlecht), ganzer Text in EINEM Durchgang, über
+  `edge-tts` (`pip install edge-tts`). `python3 -I tools/voiceover.py videos/<projekt> --target 60 [--voice …]`:
+  erzeugt eine MP3, nimmt die echten Wortzeiten für die Untertitel und **verzerrt die Szenen-Zeit
   stückweise**, sodass jede Animation auf ihrem Wort landet (Anker = Gruppenstarts, Warp-Block am Ende jeder
   Szene, `data-orig-start` in index.html). Zahlen im Feld `"say"` ausschreiben („elftausend“, „null Komma
   fünfundsiebzig“). Danach immer `node tools/build-captions.mjs videos/<projekt>`.

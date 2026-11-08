@@ -1,63 +1,83 @@
 <template>
   <style>
     #root { position: absolute; inset: 0; overflow: hidden; }
-    #s8-world { position: absolute; inset: 0; }
-    #s8-svg { position: absolute; inset: 0; }
-    .s8-lbl { position: absolute; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #ecebef; text-transform: uppercase; white-space: nowrap; }
+    #s8-cv { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    #s8-vig { position: absolute; inset: 0; }
+    .pin { position: absolute; left: 0; top: 0; pointer-events: none; }
+    .pin i { position: absolute; left: 0; top: 0; width: 2px; background: #e8e7ea; }
+    .pin b { position: absolute; left: 0; top: 0; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; }
+    .pin span { position: absolute; white-space: nowrap; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #ecebef; text-transform: uppercase; }
   </style>
   <div id="root" data-composition-id="s8" data-width="1080" data-height="1920">
-    <div id="s8-world">
-      <svg id="s8-svg" width="1080" height="1920" viewBox="0 0 1080 1920">
-        <defs>
-          <linearGradient id="s8-metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f5f7" /><stop offset="0.5" stop-color="#b9bdc4" /><stop offset="1" stop-color="#7c818a" /></linearGradient>
-          <linearGradient id="s8-strap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5468" /><stop offset="1" stop-color="#2c3342" /></linearGradient>
-          <radialGradient id="s8-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffcf4a" stop-opacity="0.6" /><stop offset="1" stop-color="#ffcf4a" stop-opacity="0" /></radialGradient>
-        </defs>
-        <!-- Anschnallzeichen -->
-        <g id="s8-sign">
-          <circle cx="540" cy="620" r="120" fill="url(#s8-glow)" id="s8-halo" opacity="0" />
-          <rect x="460" y="570" width="160" height="100" rx="18" fill="#2a2a2f" stroke="#55555c" stroke-width="3" />
-          <g id="s8-icon" fill="#5a5a60">
-            <circle cx="540" cy="595" r="12" />
-            <path d="M 520 660 L 524 618 Q 540 610 556 618 L 560 660 Z" />
-            <rect x="512" y="632" width="56" height="9" rx="4" />
-          </g>
-        </g>
-        <!-- Gurt: links Schloss-Zunge, rechts Schloss -->
-        <g id="s8-left">
-          <rect x="-40" y="935" width="380" height="70" fill="url(#s8-strap)" />
-          <g stroke="rgba(255,255,255,0.06)" stroke-width="2"><line x1="-40" y1="950" x2="340" y2="950" /><line x1="-40" y1="990" x2="340" y2="990" /></g>
-          <rect x="330" y="920" width="70" height="100" rx="10" fill="url(#s8-metal)" />
-          <path d="M 400 940 L 480 940 Q 492 940 492 952 L 492 988 Q 492 1000 480 1000 L 400 1000 Z" fill="url(#s8-metal)" />
-          <rect x="420" y="958" width="44" height="24" rx="6" fill="#2a2d33" />
-        </g>
-        <g id="s8-right">
-          <rect x="740" y="935" width="400" height="70" fill="url(#s8-strap)" />
-          <g stroke="rgba(255,255,255,0.06)" stroke-width="2"><line x1="740" y1="950" x2="1140" y2="950" /><line x1="740" y1="990" x2="1140" y2="990" /></g>
-          <rect x="560" y="905" width="200" height="130" rx="22" fill="url(#s8-metal)" />
-          <rect x="590" y="935" width="140" height="70" rx="10" fill="#9ca1a9" opacity="0.6" />
-          <path d="M 560 935 L 600 935 L 600 1005 L 560 1005 Z" fill="#20232a" />
-        </g>
-      </svg>
-      <div class="s8-lbl" id="s8-lbl" style="left: 590px; top: 1080px; opacity: 0;">Sicherheitsgurt</div>
-    </div>
+    <canvas id="s8-cv" width="1080" height="1920"></canvas>
+    <div id="s8-vig"></div>
+    <div class="pin" id="s8-pin" style="opacity: 0;"><b></b><i style="height: 90px;"></i><span style="left: -160px; top: 102px;">Sicherheitsgurt</span></div>
   </div>
   <script>
     (function () {
+      const T = THREE;
+      document.getElementById("s8-vig").style.background = KIT.VIG;
+      const k = KIT.stage(document.getElementById("s8-cv"), { fov: 30, exposure: 1.0, envIntensity: 0.9 });
+      const { scene, camera } = k;
+      // Sitzfläche als Untergrund
+      const seat = new T.Mesh(KIT.roundBox(3.2, 0.2, 1.6, 0.08), KIT.mat.fabric(0x26324a)); seat.position.y = -0.14; seat.receiveShadow = true; scene.add(seat);
+      // Gurtband mit Webstruktur
+      const web = KIT.canvasTex(64, 256, (g, w, h) => { g.fillStyle = "#4a5468"; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 4) { g.fillStyle = y % 8 ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.12)"; g.fillRect(0, y, w, 2); } });
+      web.wrapS = web.wrapT = T.RepeatWrapping; web.repeat.set(1, 6);
+      const webM = new T.MeshStandardMaterial({ map: web, roughness: 0.85 });
+      const metal = KIT.mat.metal(0xd9dce2, 0.28), dark = new T.MeshStandardMaterial({ color: 0x1a1c21, roughness: 0.5 });
+      // Linke Seite: Zunge
+      const left = new T.Group();
+      const strapL = new T.Mesh(new T.BoxGeometry(1.4, 0.012, 0.22), webM); strapL.position.x = -0.85; strapL.castShadow = true; left.add(strapL);
+      const sl = KIT.roundRect(0.36, 0.22, 0.05); sl.holes.push(KIT.roundRectPath(0.05, 0.14, 0.02).constructor === T.Path ? (() => { const p = KIT.roundRectPath(0.04, 0.15, 0.015); return p; })() : null);
+      const tongueBase = new T.Mesh(new T.ExtrudeGeometry(KIT.roundRect(0.22, 0.24, 0.05), { depth: 0.03, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 3 }), metal);
+      tongueBase.rotation.x = -Math.PI / 2; tongueBase.position.set(-0.12, 0.0, 0); tongueBase.castShadow = true; left.add(tongueBase);
+      const tongue = new T.Mesh(new T.ExtrudeGeometry(KIT.roundRect(0.26, 0.15, 0.02), { depth: 0.008, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.002, bevelSegments: 2 }), metal);
+      tongue.rotation.x = -Math.PI / 2; tongue.position.set(0.1, 0.008, 0); tongue.castShadow = true; left.add(tongue);
+      const slot = new T.Mesh(new T.BoxGeometry(0.1, 0.012, 0.05), dark); slot.position.set(0.12, 0.012, 0); left.add(slot);
+      scene.add(left);
+      // Rechte Seite: Schloss
+      const right = new T.Group();
+      const strapR = new T.Mesh(new T.BoxGeometry(1.4, 0.012, 0.22), webM); strapR.position.x = 0.95; strapR.castShadow = true; right.add(strapR);
+      const body = new T.Mesh(KIT.roundBox(0.46, 0.08, 0.3, 0.04), metal); body.position.set(0.32, 0.04, 0); body.castShadow = true; right.add(body);
+      const lever = new T.Mesh(KIT.roundBox(0.3, 0.02, 0.22, 0.02), KIT.mat.metal(0xf1f2f5, 0.2)); lever.position.set(0.3, 0.09, 0); right.add(lever);
+      const mouth = new T.Mesh(new T.BoxGeometry(0.02, 0.035, 0.18), dark); mouth.position.set(0.09, 0.04, 0); right.add(mouth);
+      scene.add(right);
+      // Anschnallzeichen
+      const signTex = KIT.canvasTex(256, 160, (g, w, h) => { g.fillStyle = "#1c1c20"; g.fillRect(0, 0, w, h); g.fillStyle = "#ffcf4a"; g.beginPath(); g.arc(128, 42, 16, 0, 6.283); g.fill(); g.beginPath(); g.moveTo(100, 140); g.lineTo(106, 72); g.quadraticCurveTo(128, 60, 150, 72); g.lineTo(156, 140); g.fill(); g.fillStyle = "#1c1c20"; g.fillRect(96, 100, 64, 10); g.fillStyle = "#ffcf4a"; g.fillRect(100, 101, 56, 8); });
+      const signM = new T.MeshStandardMaterial({ map: signTex, emissive: 0xffffff, emissiveMap: signTex, emissiveIntensity: 0, roughness: 0.4 });
+      const sign = new T.Mesh(KIT.roundBox(0.5, 0.32, 0.05, 0.04), [signM, new T.MeshStandardMaterial({ color: 0x2a2a2f, roughness: 0.5 })]);
+      sign.position.set(0, 0.62, -0.7); sign.rotation.x = 0.35; scene.add(sign);
+      const face = new T.Mesh(new T.PlaneGeometry(0.42, 0.26), new T.MeshBasicMaterial({ map: signTex, toneMapped: false })); face.position.set(0, 0, 0.0265); sign.add(face);
+      const faceM = face.material;
+      const glow = new T.PointLight(0xffcf4a, 0, 3, 2); glow.position.set(0, 0.62, -0.5); scene.add(glow);
+      scene.add(new T.HemisphereLight(0xa8c0ff, 0x101014, 0.3));
+      KIT.keyLight(scene, new T.Vector3(1.2, 3.2, 2.2), new T.Vector3(0, 0, 0), 90, 0xffffff).angle = 0.5;
+      const rim = new T.SpotLight(0x9cc8ff, 30, 0, 0.6, 0.8, 2); rim.position.set(-2, 1.5, -2); rim.target.position.set(0, 0, 0); scene.add(rim); scene.add(rim.target);
+      k.pin(document.getElementById("s8-pin"), new T.Vector3(0.35, 0.09, 0.16));
+      const st = { lx: -0.9, rx: 0.6, sign: 0, kick: 0 };
+      const clk = { t: 0 };
+      const update = () => {
+        const t = clk.t;
+        left.position.x = st.lx; right.position.x = st.rx;
+        signM.emissiveIntensity = 0; glow.intensity = st.sign * 3; faceM.color.setScalar(0.25 + 0.75 * st.sign);
+        const s = 1 + st.kick * 0.03;
+        left.scale.setScalar(s); right.scale.setScalar(s);
+        camera.position.set(0.45 + t * 0.03, 2.4, 5.4 - t * 0.08);
+        camera.lookAt(0.0, 0.32, -0.25);
+        k.render();
+      };
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#s8-world", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
-      // Zeichen leuchtet auf
-      tl.fromTo("#s8-halo", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.25);
-      tl.fromTo("#s8-icon", { attr: { fill: "#5a5a60" } }, { attr: { fill: "#ffcf4a" }, duration: 0.2 }, 0.25);
-      // Gurt schnappt ein
-      tl.fromTo("#s8-left", { x: -200 }, { x: 160, duration: 0.5, ease: "power3.in" }, 0.25);
-      tl.fromTo("#s8-right", { x: 160 }, { x: 0, duration: 0.5, ease: "power3.in" }, 0.25);
-      tl.fromTo("#s8-world", { scale: 1 }, { scale: 1.02, duration: 0.08, ease: "power2.out", transformOrigin: "540px 970px", immediateRender: false }, 0.75);
-      tl.to("#s8-world", { scale: 1, duration: 0.3, ease: "power2.out" }, 0.83);
-      tl.fromTo("#s8-lbl", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 0.9);
-      // Gurt strafft sich bei "Sitz"
-      tl.to("#s8-left", { x: 146, duration: 0.25, ease: "power3.out" }, 2.4);
-      tl.to("#s8-right", { x: 14, duration: 0.25, ease: "power3.out" }, 2.4);
+      tl.eventCallback("onUpdate", () => { clk.t = tl.time(); update(); }); tl.set({}, {}, 4.4);
+      tl.fromTo("#s8-cv", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
+      tl.fromTo(st, { sign: 0 }, { sign: 1, duration: 0.15 }, 0.25);
+      tl.fromTo(st, { lx: -0.9 }, { lx: -0.02, duration: 0.5, ease: "power3.in" }, 0.25);
+      tl.fromTo(st, { rx: 0.6 }, { rx: 0.0, duration: 0.5, ease: "power3.in" }, 0.25);
+      tl.fromTo(st, { kick: 0 }, { kick: 1, duration: 0.06 }, 0.75);
+      tl.to(st, { kick: 0, duration: 0.3, ease: "power2.out" }, 0.81);
+      tl.fromTo("#s8-pin", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.9);
+      tl.to(st, { lx: -0.06, duration: 0.25, ease: "power3.out" }, 2.4);
+      update();
       window.__timelines["s8"] = tl;
     })();
   </script>
@@ -65,7 +85,7 @@
     /* WARP START */
     (function () {
       const tl = window.__timelines["s8"].__src || window.__timelines["s8"];
-      const w = [[0.0, 0.0], [1.3, 0.959], [4.4, 4.427], [4.4, 4.427]];
+      const w = [[0.0, 0.0], [1.3, 1.249], [4.4, 4.923], [4.4, 4.923]];
       const o = gsap.timeline({ paused: true }); o.__src = tl;
       for (let i = 0; i < w.length - 1; i++) o.fromTo(tl, { time: w[i][0] }, { time: w[i + 1][0], duration: Math.max(0.001, w[i + 1][1] - w[i][1]), ease: "none", immediateRender: false }, w[i][1]);
       window.__timelines["s8"] = o;

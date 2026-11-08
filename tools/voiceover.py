@@ -22,7 +22,7 @@ if os.path.exists("/root/.ccr/ca-bundle.crt"):  # Proxy-Zertifikat der Cloud-Umg
 
 proj = sys.argv[1]
 arg = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
-voice = arg("--voice", "en-US-AndrewMultilingualNeural")
+voice = arg("--voice", "de-DE-FlorianMultilingualNeural")
 target = float(arg("--target", "60"))
 GAP, HOLD, LEAD = 0.22, 2.0, 0.15
 
@@ -55,61 +55,50 @@ async def synth(text, rate, out):
     dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out]).decode())
     return bounds, dur
 
-def render_all(rate):
-    res = []
-    for si, idx in enumerate(sentences):
-        out_rel = f"assets/voice/v{si:02d}.mp3"
-        text = " ".join(spoken(groups[i]) for i in idx)
-        for attempt in range(5):  # der Dienst antwortet gelegentlich leer
-            try:
-                b, d = asyncio.run(synth(text, rate, os.path.join(proj, out_rel)))
-                if b: break
-            except Exception as e:
-                print(f"  Wiederholung Satz {si}: {e.__class__.__name__}")
-        else:
-            raise SystemExit(f"Satz {si} konnte nicht erzeugt werden")
-        res.append((out_rel, b, d))
-    return res
+def synth_retry(text, rate, out):
+    for attempt in range(6):  # der Dienst antwortet gelegentlich leer
+        try:
+            b, d = asyncio.run(synth(text, rate, out))
+            if b: return b, d
+        except Exception as e:
+            print(f"  Wiederholung: {e.__class__.__name__}")
+    raise SystemExit("Voiceover konnte nicht erzeugt werden")
 
-def total_len(res):
-    return LEAD + sum(b[-1][1] + GAP for _, b, _ in res) - GAP + HOLD
-
-rate = int(arg("--rate", "5"))
-res = render_all(rate)
-T = total_len(res)
-new_rate = max(-10, min(30, int(round(rate + (T / target - 1) * 100))))
-if abs(T - target) > 1.5 and new_rate != rate:
-    rate = new_rate; res = render_all(rate); T = total_len(res)
-print(f"Tempo {rate:+d}%, Länge {T:.2f}s")
-
-# Sätze hintereinander legen, Wortzeiten auf Untertitelwörter verteilen
-t = LEAD
-audio_tags = []
-for si, (idx, (out_rel, b, d)) in enumerate(zip(sentences, res)):
-    start = round(t, 3)
-    audio_tags.append(f'      <audio id="vo-{si:02d}" class="clip" src="{out_rel}" data-start="{start}" data-duration="{d - 0.01:.2f}" data-track-index="{20 + si % 2}" data-volume="1"></audio>')
-    n_sp = [len(spoken(groups[i]).split()) for i in idx]
-    ok = len(b) == sum(n_sp)
-    k = 0
-    for gi, i in enumerate(idx):
-        cw = clean(groups[i]["text"]).split()
-        if ok:
-            bb = b[k:k + n_sp[gi]]
-            times = [start + bb[int(j * len(bb) / len(cw))][0] for j in range(len(cw))]
-        else:
-            span = b[-1][1]; f0 = sum(n_sp[:gi]) / sum(n_sp); f1 = sum(n_sp[:gi + 1]) / sum(n_sp)
-            times = [start + span * (f0 + (f1 - f0) * j / len(cw)) for j in range(len(cw))]
-            print(f"  Satz {si}: Fallback-Zeiten")
-        k += n_sp[gi]
-        groups[i]["words"] = [round(x, 3) for x in times]
-    t = start + b[-1][1] + GAP
-T = round(t - GAP + HOLD, 2)
+# Ganzer Text in EINEM Durchgang (natürliche Betonung und Pausen)
+full = " ".join(spoken(g) for g in groups)
+out_rel = "assets/voice/vo.mp3"
+for f in os.listdir(os.path.join(proj, "assets", "voice")):
+    if f.endswith(".mp3"): os.remove(os.path.join(proj, "assets", "voice", f))
+rate = int(arg("--rate", "0"))
+b, d = synth_retry(full, rate, os.path.join(proj, out_rel))
+T = LEAD + b[-1][1] + HOLD
+new_rate = max(-10, min(25, int(round(rate + (T / target - 1) * 100))))
+if abs(T - target) > 1.5 and new_rate != rate and "--rate" not in sys.argv:
+    rate = new_rate; b, d = synth_retry(full, rate, os.path.join(proj, out_rel)); T = LEAD + b[-1][1] + HOLD
+T = round(T, 2)
+print(f"Stimme {voice}, Tempo {rate:+d}%, Länge {T}s")
+audio_tags = [f'      <audio id="vo-00" class="clip" src="{out_rel}" data-start="{LEAD}" data-duration="{d - 0.01:.2f}" data-track-index="20" data-volume="1"></audio>']
+n_sp = [len(spoken(g).split()) for g in groups]
+ok = len(b) == sum(n_sp)
+if not ok: print(f"  Hinweis: {len(b)} Wortmarken für {sum(n_sp)} Wörter, proportionale Zeiten")
+k = 0
+for gi, g in enumerate(groups):
+    cw = clean(g["text"]).split()
+    if ok:
+        bb = b[k:k + n_sp[gi]]
+        times = [LEAD + bb[int(j * len(bb) / len(cw))][0] for j in range(len(cw))]
+    else:
+        f0 = k / sum(n_sp); f1 = (k + n_sp[gi]) / sum(n_sp); span = b[-1][1]
+        times = [LEAD + span * (f0 + (f1 - f0) * j / len(cw)) for j in range(len(cw))]
+    k += n_sp[gi]
+    g["words"] = [round(x, 3) for x in times]
 for i, g in enumerate(groups):
-    s = round(max(0.05, g["words"][0] - 0.08), 3)
+    s0 = round(max(0.05, g["words"][0] - 0.08), 3)
     e = round(groups[i + 1]["words"][0] - 0.08, 3) if i + 1 < len(groups) else T
-    g["t"] = [s, e]
-    g["words"] = [max(w, s) for w in g["words"]]
+    g["t"] = [s0, e]
+    g["words"] = [max(w, s0) for w in g["words"]]
 json.dump(data, open(sp, "w"), ensure_ascii=False, indent=1)
+sentences = [None]
 
 # Globale Zeitverzerrung alt -> neu
 anchors = [(0.0, 0.0)] + [(g["t0"][0], g["t"][0]) for g in groups] + [(old_end, T)]

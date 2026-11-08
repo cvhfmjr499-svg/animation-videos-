@@ -1,100 +1,135 @@
 <template>
   <style>
     #root { position: absolute; inset: 0; overflow: hidden; }
-    #s6-world { position: absolute; inset: 0; }
-    #s6-svg { position: absolute; inset: 0; }
-    .s6-lbl { position: absolute; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #ecebef; text-transform: uppercase; white-space: nowrap; }
-    #s6-timer { position: absolute; left: 640px; top: 760px; width: 240px; height: 240px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    #s6-num { font: 800 92px "Inter", sans-serif; color: #fff; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
-    #s6-unit { font: 600 28px "Inter", sans-serif; color: #b9b8be; letter-spacing: 0.1em; }
-    #s6-cap { position: absolute; left: 600px; top: 1030px; width: 320px; text-align: center; font: 600 28px "Inter", sans-serif; letter-spacing: 0.12em; color: #ecebef; text-transform: uppercase; line-height: 1.35; }
+    #s6-cv { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    #s6-vig { position: absolute; inset: 0; }
+    .pin { position: absolute; left: 0; top: 0; pointer-events: none; }
+    .pin i { position: absolute; left: 0; top: 0; width: 2px; background: #e8e7ea; }
+    .pin b { position: absolute; left: 0; top: 0; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; }
+    .pin span { position: absolute; white-space: nowrap; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #ecebef; text-transform: uppercase; }
+    #s6-timer { position: absolute; left: 70px; top: 470px; display: flex; align-items: center; gap: 26px; }
+    #s6-ringbox { position: relative; width: 200px; height: 200px; }
+    #s6-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 800 84px "Inter", sans-serif; color: #fff; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+    #s6-cap { font: 600 28px "Inter", sans-serif; letter-spacing: 0.12em; color: #ecebef; text-transform: uppercase; line-height: 1.35; }
+    #s6-cap small { display: block; font: 500 28px "Inter", sans-serif; letter-spacing: 0; text-transform: none; color: #b9b8be; }
     #s6-foot { position: absolute; left: 70px; top: 1290px; font: 400 28px "Inter", sans-serif; color: #8a898f; }
   </style>
   <div id="root" data-composition-id="s6" data-width="1080" data-height="1920">
-    <div id="s6-world">
-      <svg id="s6-svg" width="1080" height="1920" viewBox="0 0 1080 1920">
-        <defs>
-          <linearGradient id="s6-panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9e6e0" /><stop offset="1" stop-color="#a8a49c" /></linearGradient>
-          <radialGradient id="s6-cup" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="#ffe27a" /><stop offset="1" stop-color="#e3a412" /></radialGradient>
-          <linearGradient id="s6-skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3f4b" /><stop offset="1" stop-color="#262a33" /></linearGradient>
-          <filter id="s6-blur"><feGaussianBlur stdDeviation="18" /></filter>
-        </defs>
-        <!-- Personen (erscheinen später) -->
-        <g id="s6-p1" opacity="0">
-          <path d="M 250 1250 Q 250 1110 390 1100 Q 530 1110 530 1250 Z" fill="url(#s6-skin)" />
-          <circle cx="390" cy="1010" r="72" fill="url(#s6-skin)" />
-        </g>
-        <g id="s6-p2" opacity="0">
-          <path d="M 625 1250 Q 625 1150 720 1145 Q 815 1150 815 1250 Z" fill="url(#s6-skin)" />
-          <circle cx="720" cy="1085" r="52" fill="url(#s6-skin)" />
-        </g>
-        <!-- Maske 1 -->
-        <line id="s6-tube1" x1="390" y1="600" x2="390" y2="600" stroke="#dcdad6" stroke-width="4" />
-        <g id="s6-m1">
-          <path d="M 330 590 Q 390 560 450 590" stroke="#f2f2f2" stroke-width="3" fill="none" opacity="0.7" />
-          <ellipse cx="390" cy="600" rx="46" ry="38" fill="url(#s6-cup)" />
-          <ellipse cx="390" cy="590" rx="30" ry="20" fill="#ffffff" opacity="0.25" />
-          <path d="M 370 636 Q 360 700 390 720 Q 420 700 410 636 Z" fill="#e8f2fb" opacity="0.55" stroke="#ffffff" stroke-width="2" />
-        </g>
-        <!-- Maske 2 -->
-        <line id="s6-tube2" x1="720" y1="600" x2="720" y2="600" stroke="#dcdad6" stroke-width="4" opacity="0" />
-        <g id="s6-m2" opacity="0">
-          <ellipse cx="720" cy="600" rx="36" ry="30" fill="url(#s6-cup)" />
-          <ellipse cx="720" cy="592" rx="22" ry="15" fill="#ffffff" opacity="0.25" />
-        </g>
-        <!-- Deckenpanel -->
-        <rect x="160" y="500" width="640" height="100" rx="18" fill="url(#s6-panel)" />
-        <rect id="s6-light" x="690" y="530" width="80" height="36" rx="8" fill="#ffcf4a" opacity="0.25" />
-        <path d="M 712 548 L 748 548" stroke="#3a3730" stroke-width="5" stroke-linecap="round" />
-        <rect x="300" y="596" width="180" height="10" rx="4" fill="#3a3730" />
-        <!-- Klappe -->
-        <rect id="s6-flap" x="300" y="596" width="180" height="16" rx="4" fill="#cfcbc3" />
-        <!-- Timer-Ring -->
-        <g id="s6-ring" opacity="0">
-          <circle cx="760" cy="880" r="112" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="12" />
-          <circle id="s6-arc" cx="760" cy="880" r="112" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" transform="rotate(-90 760 880)" stroke-dasharray="703.7" stroke-dashoffset="0" />
-        </g>
-      </svg>
-      <div id="s6-timer" style="opacity: 0;"><div id="s6-num">30</div><div id="s6-unit">SEK</div></div>
-      <div id="s6-cap" style="opacity: 0;">bis zur Bewusstlosigkeit</div>
-      <div class="s6-lbl" id="s6-lbl-mask" style="left: 470px; top: 700px; opacity: 0;">Sauerstoffmaske</div>
+    <canvas id="s6-cv" width="1080" height="1920"></canvas>
+    <div id="s6-vig"></div>
+    <div class="pin" id="s6-pin" style="opacity: 0;"><b></b><i style="height: 70px;"></i><span style="left: -40px; top: 82px;">Sauerstoffmaske</span></div>
+    <div id="s6-timer" style="opacity: 0;">
+      <div id="s6-ringbox">
+        <svg width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="12" /><circle id="s6-arc" cx="100" cy="100" r="88" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="552.9" stroke-dashoffset="0" /></svg>
+        <div id="s6-num">30</div>
+      </div>
+      <div id="s6-cap">Sekunden<small>bis zur Bewusstlosigkeit</small></div>
     </div>
     <div id="s6-foot" style="opacity: 0;">In 11.000 m Höhe, nach plötzlichem Druckverlust</div>
   </div>
   <script>
     (function () {
+      const T = THREE;
+      document.getElementById("s6-vig").style.background = KIT.VIG;
+      const k = KIT.stage(document.getElementById("s6-cv"), { fov: 30, exposure: 1.0, envIntensity: 0.7 });
+      const { scene, camera } = k;
+      const FY = -1.05;
+      KIT.floor(scene, FY, 0x131217);
+      // Sitzreihe
+      const seatMat = KIT.mat.fabric(0x26324a), cover = KIT.mat.fabric(0xe9e6df);
+      const seats = [];
+      for (const x of [-0.42, 0.0, 0.42]) {
+        const g = new T.Group();
+        const back = new T.Mesh(KIT.roundBox(0.38, 0.72, 0.1, 0.05), seatMat); back.position.set(0, 0.36, -0.2); back.rotation.x = -0.12; back.castShadow = true; g.add(back);
+        const hc = new T.Mesh(KIT.roundBox(0.32, 0.16, 0.02, 0.01), cover); hc.position.set(0, 0.62, -0.14); hc.rotation.x = -0.12; g.add(hc);
+        const cu = new T.Mesh(KIT.roundBox(0.38, 0.1, 0.4, 0.04), seatMat); cu.position.set(0, -0.02, 0.0); cu.castShadow = true; g.add(cu);
+        const leg = new T.Mesh(new T.BoxGeometry(0.04, 0.4, 0.04), KIT.mat.metal(0x8a8f98, 0.4)); leg.position.set(0, -0.27, 0); g.add(leg);
+        g.position.set(x, FY + 0.47, 0); scene.add(g); seats.push(g);
+      }
+      // Passagiere (stilisierte Figuren)
+      const clay = new T.MeshStandardMaterial({ color: 0x5d6b62, roughness: 0.65 });
+      const skin = new T.MeshStandardMaterial({ color: 0xd9b59a, roughness: 0.6 });
+      const hairM = new T.MeshStandardMaterial({ color: 0x2b2420, roughness: 0.8 });
+      const person = (x, s) => {
+        const g = new T.Group();
+        const torso = new T.Mesh(new T.CapsuleGeometry(0.13, 0.26, 8, 24), clay); torso.position.set(0, 0.3, -0.05); torso.scale.set(1.1, 1, 0.75); torso.castShadow = true; g.add(torso);
+        const neck = new T.Mesh(new T.CylinderGeometry(0.04, 0.045, 0.08, 16), skin); neck.position.set(0, 0.55, -0.04); g.add(neck);
+        const head = new T.Mesh(new T.SphereGeometry(0.1, 32, 24), skin); head.position.set(0, 0.66, -0.02); head.scale.set(0.92, 1.08, 1); head.castShadow = true; g.add(head);
+        const hair = new T.Mesh(new T.SphereGeometry(0.104, 32, 24, 0, Math.PI * 2, 0, Math.PI * 0.55), hairM); hair.position.set(0, 0.675, -0.035); hair.scale.set(0.95, 1.08, 1.02); g.add(hair);
+        for (const sx of [-1, 1]) {
+          const arm = new T.Mesh(new T.CapsuleGeometry(0.045, 0.24, 6, 16), clay); arm.position.set(sx * 0.17, 0.3, 0.03); arm.rotation.x = -0.5; g.add(arm);
+          const thigh = new T.Mesh(new T.CapsuleGeometry(0.06, 0.26, 6, 16), new T.MeshStandardMaterial({ color: 0x2c3140, roughness: 0.8 })); thigh.position.set(sx * 0.07, 0.07, 0.15); thigh.rotation.x = Math.PI / 2; g.add(thigh);
+        }
+        g.scale.setScalar(s); g.position.set(x, FY + 0.5, 0.0); scene.add(g);
+        g.userData.face = () => new T.Vector3(0, 0.63, 0.09).multiplyScalar(s).add(g.position);
+        return g;
+      };
+      const adult = person(-0.42, 1.0);
+      const child = person(0.42, 0.78);
+      // Deckenpanel mit Klappe
+      const PY = FY + 1.75;
+      const panel = new T.Mesh(KIT.roundBox(1.4, 0.1, 0.5, 0.03), KIT.mat.plastic(0xe4e0d8, 0.45)); panel.position.set(0, PY, 0.15); panel.castShadow = true; scene.add(panel);
+      const sign = new T.Mesh(new T.BoxGeometry(0.14, 0.004, 0.06), new T.MeshBasicMaterial({ color: 0xffcf4a, toneMapped: false })); sign.position.set(0.48, PY - 0.052, 0.2); scene.add(sign);
+      const hinge = new T.Group(); hinge.position.set(-0.6, PY - 0.05, 0.3); scene.add(hinge);
+      const flap = new T.Mesh(KIT.roundBox(0.5, 0.012, 0.16, 0.004), KIT.mat.plastic(0xd8d4cb, 0.5)); flap.position.set(0.25, 0, -0.08); hinge.add(flap);
+      // Masken
+      const yel = new T.MeshPhysicalMaterial({ color: 0xffc21a, roughness: 0.35, clearcoat: 0.6 });
+      const bagM = new T.MeshPhysicalMaterial({ color: 0xeaf4ff, roughness: 0.2, transparent: true, opacity: 0.45, depthWrite: false });
+      const tubeM = new T.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 0.5 });
+      const cupG = new T.LatheGeometry([new T.Vector2(0.0, 0), new T.Vector2(0.03, 0.002), new T.Vector2(0.055, 0.03), new T.Vector2(0.06, 0.06), new T.Vector2(0.058, 0.065)], 32);
+      const mask = () => {
+        const g = new T.Group();
+        const cup = new T.Mesh(cupG, yel); cup.rotation.x = -Math.PI / 2; cup.position.z = 0.03; cup.castShadow = true; g.add(cup);
+        const bag = new T.Mesh(new T.SphereGeometry(0.05, 24, 16), bagM); bag.scale.set(0.8, 1.6, 0.8); bag.position.set(0, -0.11, 0); g.add(bag);
+        const band = new T.Mesh(new T.TorusGeometry(0.075, 0.003, 8, 40), tubeM); band.position.z = -0.02; g.add(band);
+        const tube = new T.Mesh(new T.CylinderGeometry(0.004, 0.004, 1, 8), tubeM); scene.add(tube);
+        scene.add(g); return { g, tube };
+      };
+      const m1 = mask(), m2 = mask();
+      const setTube = (m, top) => { const a = top, b = m.g.position.clone().add(new T.Vector3(0, 0.05, 0)); const d = b.clone().sub(a); m.tube.position.copy(a).add(b).multiplyScalar(0.5); m.tube.scale.set(1, Math.max(0.001, d.length()), 1); m.tube.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d.normalize()); };
+      // Licht
+      scene.add(new T.HemisphereLight(0xa8c0ff, 0x101014, 0.3));
+      KIT.keyLight(scene, new T.Vector3(1.5, 3.5, 3.2), new T.Vector3(0, -0.2, 0), 130).angle = 0.5;
+      const rim = new T.SpotLight(0x9cc8ff, 35, 0, 0.6, 0.8, 2); rim.position.set(-2.5, 2, -2); rim.target.position.set(0, 0, 0); scene.add(rim); scene.add(rim.target);
+      const pinV = new T.Vector3(); k.pin(document.getElementById("s6-pin"), pinV);
+      const st = { flap: 0, d1: 0, on1: 0, d2: 0, on2: 0, v2: 0 };
+      const clk = { t: 0 };
+      const top1 = new T.Vector3(-0.42, PY - 0.06, 0.25), top2 = new T.Vector3(0.42, PY - 0.06, 0.25);
+      const update = () => {
+        const t = clk.t;
+        hinge.rotation.z = -st.flap * 1.25;
+        // Maske 1: fällt, dann aufs Gesicht
+        const hang1 = new T.Vector3(-0.42, PY - 0.08 - st.d1 * 0.5, 0.25 + Math.sin(t * 2.2) * 0.01 * st.d1);
+        m1.g.position.lerpVectors(hang1, adult.userData.face().add(new T.Vector3(0, 0, 0.02)), st.on1);
+        m1.g.visible = st.d1 > 0.01; m1.tube.visible = m1.g.visible; setTube(m1, top1);
+        const hang2 = new T.Vector3(0.42, PY - 0.08 - st.d2 * 0.6, 0.25);
+        m2.g.position.lerpVectors(hang2, child.userData.face().add(new T.Vector3(0, 0, 0.02)), st.on2);
+        m2.g.visible = st.v2 > 0.5; m2.tube.visible = m2.g.visible; setTube(m2, top2);
+        pinV.copy(m1.g.position).add(new T.Vector3(0.07, -0.02, 0));
+        camera.position.set(0.9 + Math.sin(t * 0.2) * 0.1, 0.35, 6.4 - t * 0.06);
+        camera.lookAt(0.05, -0.05, 0);
+        k.render();
+      };
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#s6-world", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
-      tl.fromTo("#s6-light", { opacity: 0.25 }, { opacity: 1, duration: 0.1 }, 0.1);
-      // Klappe auf, Maske fällt
-      tl.fromTo("#s6-flap", { rotation: 0, svgOrigin: "300 604" }, { rotation: 70, svgOrigin: "300 604", duration: 0.25, ease: "power3.out" }, 0.15);
-      tl.fromTo("#s6-m1", { y: -10 }, { y: 260, duration: 0.7, ease: "bounce.out" }, 0.3);
-      tl.fromTo("#s6-tube1", { attr: { y2: 590 } }, { attr: { y2: 860 }, duration: 0.7, ease: "bounce.out" }, 0.3);
-      tl.fromTo("#s6-lbl-mask", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 0.9);
-      tl.set("#s6-lbl-mask", { y: 160 }, 0);
-      // Countdown bei "15 bis 30 Sekunden"
-      tl.to("#s6-lbl-mask", { opacity: 0, duration: 0.2 }, 2.2);
-      tl.fromTo(["#s6-ring", "#s6-timer"], { opacity: 0, scale: 0.9, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.35, ease: "expo.out" }, 2.35);
-      tl.fromTo("#s6-cap", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 2.6);
+      tl.eventCallback("onUpdate", () => { clk.t = tl.time(); update(); }); tl.set({}, {}, 9);
+      tl.fromTo("#s6-cv", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
+      tl.fromTo(st, { flap: 0 }, { flap: 1, duration: 0.3, ease: "power3.out" }, 0.15);
+      tl.fromTo(st, { d1: 0 }, { d1: 1, duration: 0.8, ease: "bounce.out" }, 0.3);
+      tl.fromTo("#s6-pin", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.9);
+      tl.to("#s6-pin", { opacity: 0, duration: 0.2 }, 2.2);
+      tl.fromTo("#s6-timer", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }, 2.35);
       tl.fromTo("#s6-foot", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 2.6);
       const c = { v: 30 };
-      tl.fromTo(c, { v: 30 }, { v: 15, duration: 3.0, ease: "power1.inOut", onUpdate: () => {
-        document.getElementById("s6-num").textContent = Math.ceil(c.v);
-        document.getElementById("s6-arc").setAttribute("stroke-dashoffset", (703.7 * (1 - c.v / 30)).toFixed(1));
-      } }, 2.5);
+      tl.fromTo(c, { v: 30 }, { v: 15, duration: 3.0, ease: "power1.inOut", onUpdate: () => { document.getElementById("s6-num").textContent = Math.ceil(c.v); document.getElementById("s6-arc").setAttribute("stroke-dashoffset", (552.9 * (1 - c.v / 30)).toFixed(1)); } }, 2.5);
       tl.fromTo("#s6-arc", { attr: { stroke: "#ffffff" } }, { attr: { stroke: "#ff4d4d" }, duration: 0.6 }, 4.4);
       tl.fromTo("#s6-num", { color: "#ffffff" }, { color: "#ff6b6b", duration: 0.6 }, 4.4);
-      // Erst deine Maske
-      tl.to(["#s6-ring", "#s6-timer", "#s6-cap"], { opacity: 0, filter: "blur(8px)", duration: 0.2 }, 6.0);
-      tl.fromTo("#s6-p1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 6.15);
-      tl.to("#s6-m1", { y: 432, duration: 0.5, ease: "power3.inOut" }, 6.55);
-      tl.to("#s6-tube1", { attr: { y2: 1032 }, duration: 0.5, ease: "power3.inOut" }, 6.55);
-      // dann die anderen
-      tl.fromTo("#s6-p2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, 7.75);
-      tl.set(["#s6-m2", "#s6-tube2"], { opacity: 1 }, 7.9);
-      tl.fromTo("#s6-m2", { y: -10 }, { y: 495, duration: 0.6, ease: "power3.out" }, 7.9);
-      tl.fromTo("#s6-tube2", { attr: { y2: 590 } }, { attr: { y2: 1095 }, duration: 0.6, ease: "power3.out" }, 7.9);
-      tl.to(["#s6-world", "#s6-foot"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 8.78);
+      tl.to("#s6-timer", { opacity: 0, filter: "blur(8px)", duration: 0.2 }, 6.0);
+      tl.fromTo(st, { on1: 0 }, { on1: 1, duration: 0.55, ease: "power3.inOut" }, 6.4);
+      tl.fromTo(st, { v2: 0 }, { v2: 1, duration: 0.01 }, 7.8);
+      tl.fromTo(st, { d2: 0 }, { d2: 1, duration: 0.6, ease: "bounce.out" }, 7.8);
+      tl.fromTo(st, { on2: 0 }, { on2: 1, duration: 0.45, ease: "power3.inOut" }, 8.3);
+      tl.to(["#s6-cv", "#s6-foot"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 8.78);
+      update();
       window.__timelines["s6"] = tl;
     })();
   </script>
@@ -102,7 +137,7 @@
     /* WARP START */
     (function () {
       const tl = window.__timelines["s6"].__src || window.__timelines["s6"];
-      const w = [[0.0, 0.0], [1.4, 1.186], [2.4, 1.709], [4.0, 3.834], [6.2, 5.906], [7.8, 7.793], [9.0, 8.876], [9.0, 8.876]];
+      const w = [[0.0, 0.0], [1.4, 1.411], [2.4, 2.042], [4.0, 3.853], [6.2, 5.609], [7.8, 7.375], [9.0, 8.495], [9.0, 8.495]];
       const o = gsap.timeline({ paused: true }); o.__src = tl;
       for (let i = 0; i < w.length - 1; i++) o.fromTo(tl, { time: w[i][0] }, { time: w[i + 1][0], duration: Math.max(0.001, w[i + 1][1] - w[i][1]), ease: "none", immediateRender: false }, w[i][1]);
       window.__timelines["s6"] = o;
