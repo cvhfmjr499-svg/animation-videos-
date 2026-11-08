@@ -1,0 +1,306 @@
+{
+ "title": "Was passiert, wenn dein Flugzeugfenster bricht?",
+ "groups": [
+  {
+   "t": [
+    0.15,
+    1.6
+   ],
+   "text": "Was würde *passieren,*"
+  },
+  {
+   "t": [
+    1.6,
+    3
+   ],
+   "text": "wenn in *11.000* Metern"
+  },
+  {
+   "t": [
+    3,
+    4
+   ],
+   "text": "dein *Fenster*"
+  },
+  {
+   "t": [
+    4,
+    5.5
+   ],
+   "text": "plötzlich *bricht?*"
+  },
+  {
+   "t": [
+    5.5,
+    6.6
+   ],
+   "text": "Um das zu verstehen:"
+  },
+  {
+   "t": [
+    6.6,
+    8
+   ],
+   "text": "Da draußen ist die *Luft*"
+  },
+  {
+   "t": [
+    8,
+    9
+   ],
+   "text": "so *dünn,*"
+  },
+  {
+   "t": [
+    9,
+    10.2
+   ],
+   "text": "dass du in Sekunden"
+  },
+  {
+   "t": [
+    10.2,
+    11.5
+   ],
+   "text": "*ohnmächtig* wärst."
+  },
+  {
+   "t": [
+    11.5,
+    12.9
+   ],
+   "text": "Also *pumpt* das Flugzeug"
+  },
+  {
+   "t": [
+    12.9,
+    14.3
+   ],
+   "text": "ständig Luft in die Kabine."
+  },
+  {
+   "t": [
+    14.3,
+    15.7
+   ],
+   "text": "Drinnen: *0,75* bar."
+  },
+  {
+   "t": [
+    15.7,
+    17.4
+   ],
+   "text": "Draußen: nur *0,23.*"
+  },
+  {
+   "t": [
+    17.4,
+    18.5
+   ],
+   "text": "Dieser Unterschied"
+  },
+  {
+   "t": [
+    18.5,
+    19.9
+   ],
+   "text": "*drückt* auf jedes Fenster"
+  },
+  {
+   "t": [
+    19.9,
+    21.8
+   ],
+   "text": "mit rund *500* Kilo."
+  },
+  {
+   "t": [
+    21.8,
+    23.9
+   ],
+   "text": "So viel wie ein *Konzertflügel.*"
+  },
+  {
+   "t": [
+    23.9,
+    25.6
+   ],
+   "text": "Deshalb hat es *drei* Scheiben.",
+   "theme": "light"
+  },
+  {
+   "t": [
+    25.6,
+    26.7
+   ],
+   "text": "Und in der mittleren",
+   "theme": "light"
+  },
+  {
+   "t": [
+    26.7,
+    28.4
+   ],
+   "text": "ist ein winziges *Loch.*",
+   "theme": "light"
+  },
+  {
+   "t": [
+    28.4,
+    29.4
+   ],
+   "text": "Es sorgt dafür,",
+   "theme": "light"
+  },
+  {
+   "t": [
+    29.4,
+    30.9
+   ],
+   "text": "dass nur die *äußere* Scheibe",
+   "theme": "light"
+  },
+  {
+   "t": [
+    30.9,
+    31.9
+   ],
+   "text": "den Druck trägt.",
+   "theme": "light"
+  },
+  {
+   "t": [
+    31.9,
+    33.6
+   ],
+   "text": "Die mittlere ist die *Reserve.*",
+   "theme": "light"
+  },
+  {
+   "t": [
+    33.6,
+    35
+   ],
+   "text": "Brechen trotzdem *beide,*"
+  },
+  {
+   "t": [
+    35,
+    36
+   ],
+   "text": "*rast* die Luft"
+  },
+  {
+   "t": [
+    36,
+    37.2
+   ],
+   "text": "in *Sekunden* hinaus."
+  },
+  {
+   "t": [
+    37.2,
+    38.6
+   ],
+   "text": "Die Kabine wird *neblig*"
+  },
+  {
+   "t": [
+    38.6,
+    39.6
+   ],
+   "text": "und *eiskalt:*"
+  },
+  {
+   "t": [
+    39.6,
+    41
+   ],
+   "text": "minus *56* Grad."
+  },
+  {
+   "t": [
+    41,
+    42.4
+   ],
+   "text": "Die *Masken* fallen."
+  },
+  {
+   "t": [
+    42.4,
+    43.4
+   ],
+   "text": "Und du hast nur"
+  },
+  {
+   "t": [
+    43.4,
+    45
+   ],
+   "text": "*15* bis 30 Sekunden,"
+  },
+  {
+   "t": [
+    45,
+    47.2
+   ],
+   "text": "bevor dein *Gehirn* abschaltet."
+  },
+  {
+   "t": [
+    47.2,
+    48.8
+   ],
+   "text": "Also: erst *deine* Maske,"
+  },
+  {
+   "t": [
+    48.8,
+    50
+   ],
+   "text": "dann die anderen."
+  },
+  {
+   "t": [
+    50,
+    50.8
+   ],
+   "text": "Die Piloten"
+  },
+  {
+   "t": [
+    50.8,
+    52.2
+   ],
+   "text": "gehen in den *Sturzflug*"
+  },
+  {
+   "t": [
+    52.2,
+    53.6
+   ],
+   "text": "auf *3.000* Meter."
+  },
+  {
+   "t": [
+    53.6,
+    55.6
+   ],
+   "text": "Dort kannst du wieder *atmen.*"
+  },
+  {
+   "t": [
+    55.6,
+    56.9
+   ],
+   "text": "Und dein *Gurt?*"
+  },
+  {
+   "t": [
+    56.9,
+    60
+   ],
+   "text": "Der hält dich auf deinem *Sitz.*"
+  }
+ ]
+}

@@ -1,0 +1,86 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s4-bg { position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 48%, #fbfaf8, rgba(251, 250, 248, 0) 75%),
+        linear-gradient(rgba(0, 0, 0, 0.045) 1px, transparent 1px) 0 0 / 54px 54px,
+        linear-gradient(90deg, rgba(0, 0, 0, 0.045) 1px, transparent 1px) 0 0 / 54px 54px,
+        #ecebe8; }
+    #s4-world { position: absolute; inset: 0; transform-origin: 540px 1040px; }
+    #s4-stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; perspective: 1500px; }
+    .s4-pane { position: absolute; left: 410px; top: 710px; width: 260px; height: 380px; border-radius: 120px; }
+    #s4-p1 { background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(214,226,236,0.75)); border: 3px solid #c9ccd1; }
+    #s4-p2 { background: linear-gradient(135deg, rgba(220,236,250,0.95), rgba(170,200,226,0.8)); border: 5px solid #9fb2c4; }
+    #s4-p3 { background: linear-gradient(135deg, rgba(196,224,250,0.95), rgba(120,166,210,0.85)); border: 9px solid #7f97ad; }
+    .s4-shine { position: absolute; left: 40px; top: 60px; width: 26px; height: 160px; border-radius: 13px; background: rgba(255,255,255,0.55); transform: rotate(18deg); }
+    #s4-hole { position: absolute; left: 120px; top: 318px; width: 12px; height: 12px; border-radius: 50%; background: #2d3946; box-shadow: 0 0 0 3px rgba(45,57,70,0.18); }
+    .s4-hl { position: absolute; inset: -16px; border-radius: 134px; opacity: 0; }
+    #s4-hl3 { border: 4px solid #2f6fe8; box-shadow: 0 0 40px rgba(47,111,232,0.45); }
+    #s4-hl2 { border: 4px dashed #1f9d6b; }
+    .s4-lbl { position: absolute; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #1b1a1e; text-transform: uppercase; white-space: nowrap; text-align: center; width: 260px; }
+    .s4-lead { position: absolute; width: 2px; background: #3a393e; }
+    .s4-tag { position: absolute; font: 700 30px "Inter", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+    #s4-foot { position: absolute; left: 70px; top: 1290px; font: 400 28px "Inter", sans-serif; color: #6f6e72; }
+    #s4-flow { position: absolute; inset: 0; }
+  </style>
+  <div id="root" data-composition-id="s4" data-width="1080" data-height="1920">
+    <div id="s4-bg"></div>
+    <div id="s4-world">
+      <div id="s4-stage">
+        <div class="s4-pane" id="s4-p1"><div class="s4-shine"></div></div>
+        <div class="s4-pane" id="s4-p2"><div class="s4-shine"></div><div id="s4-hole"></div><div class="s4-hl" id="s4-hl2"></div></div>
+        <div class="s4-pane" id="s4-p3"><div class="s4-shine"></div><div class="s4-hl" id="s4-hl3"></div></div>
+      </div>
+      <svg id="s4-flow" width="1080" height="1920" viewBox="0 0 1080 1920"><g id="s4-flowdots" fill="#2f6fe8"></g></svg>
+      <div class="s4-lead" id="s4-ld1" style="left: 299px; top: 640px; height: 70px; opacity: 0;"></div>
+      <div class="s4-lead" id="s4-ld2" style="left: 539px; top: 640px; height: 70px; opacity: 0;"></div>
+      <div class="s4-lead" id="s4-ld3" style="left: 779px; top: 640px; height: 70px; opacity: 0;"></div>
+      <div class="s4-lbl" id="s4-l1" style="left: 170px; top: 600px; opacity: 0;">Innen</div>
+      <div class="s4-lbl" id="s4-l2" style="left: 410px; top: 600px; opacity: 0;">Mitte</div>
+      <div class="s4-lbl" id="s4-l3" style="left: 650px; top: 600px; opacity: 0;">Außen</div>
+      <div class="s4-tag" id="s4-holelbl" data-layout-ignore style="left: 470px; top: 1050px; width: 140px; text-align: center; font-size: 10px; letter-spacing: 0.08em; color: #1b1a1e; opacity: 0;">Entlüftungsloch</div>
+      <div class="s4-tag" id="s4-t3" style="left: 650px; top: 1130px; width: 260px; text-align: center; color: #2f6fe8; opacity: 0;">trägt den Druck</div>
+      <div class="s4-tag" id="s4-t2" style="left: 410px; top: 1190px; width: 260px; text-align: center; color: #1f9d6b; opacity: 0;">Reserve</div>
+    </div>
+    <div id="s4-foot" style="opacity: 0;">Schematisch, Abstände übertrieben</div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const NS = "http://www.w3.org/2000/svg";
+      const g = document.getElementById("s4-flowdots"); const fl = [];
+      for (let i = 0; i < 6; i++) { const c = document.createElementNS(NS, "circle"); c.setAttribute("r", 1.6); g.appendChild(c); fl.push(c); }
+      // Szenenwechsel: hell flutet herein
+      tl.fromTo("#s4-bg", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.inOut" }, 0);
+      gsap.set(".s4-pane", { rotationY: -48, transformPerspective: 1500 });
+      tl.fromTo(".s4-pane", { x: 0, opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.4, ease: "expo.out", stagger: 0.05 }, 0.2);
+      // Auseinanderziehen bei "drei"
+      tl.fromTo("#s4-p1", { x: 0 }, { x: -240, duration: 0.8, ease: "expo.out", immediateRender: false }, 0.9);
+      tl.fromTo("#s4-p3", { x: 0 }, { x: 240, duration: 0.8, ease: "expo.out", immediateRender: false }, 0.9);
+      tl.fromTo(["#s4-ld1", "#s4-l1", "#s4-ld2", "#s4-l2", "#s4-ld3", "#s4-l3"], { opacity: 0 }, { opacity: 1, duration: 0.25, stagger: 0.05 }, 1.3);
+      tl.fromTo("#s4-foot", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.4);
+      // Zoom aufs Loch
+      tl.to(["#s4-ld1", "#s4-l1", "#s4-ld2", "#s4-l2", "#s4-ld3", "#s4-l3"], { opacity: 0, duration: 0.2 }, 2.95);
+      tl.fromTo("#s4-world", { scale: 1 }, { scale: 4, duration: 0.8, ease: "power2.inOut" }, 3.0);
+      tl.fromTo("#s4-holelbl", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 3.7);
+      const clock = { t: 0 };
+      tl.fromTo(clock, { t: 0 }, { t: 1, duration: 1.8, ease: "none", onUpdate: () => {
+        fl.forEach((c, i) => { const u = (clock.t * 2.2 + i / fl.length) % 1; c.setAttribute("cx", (522 + u * 36).toFixed(2)); c.setAttribute("cy", (1036 + Math.sin(u * 6 + i) * 1.5).toFixed(2)); c.setAttribute("opacity", Math.sin(u * Math.PI).toFixed(2)); });
+      } }, 3.6);
+      tl.to("#s4-holelbl", { opacity: 0, duration: 0.15 }, 5.35);
+      tl.to("#s4-world", { scale: 1, duration: 0.7, ease: "power2.inOut" }, 5.4);
+      tl.set("#s4-flowdots", { opacity: 0 }, 5.4);
+      // Äußere Scheibe trägt
+      tl.fromTo("#s4-hl3", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 6.1);
+      tl.fromTo("#s4-t3", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 6.2);
+      // Mittlere = Reserve
+      tl.fromTo("#s4-hl2", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 8.35);
+      tl.fromTo("#s4-t2", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 8.4);
+      // Ausgang: Licht geht aus
+      tl.to(["#s4-world", "#s4-foot"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 9.45);
+      tl.to("#s4-bg", { opacity: 0, duration: 0.15, ease: "power2.in" }, 9.55);
+      window.__timelines["s4"] = tl;
+    })();
+  </script>
+</template>

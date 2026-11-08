@@ -1,0 +1,110 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s5-shake { position: absolute; inset: 0; }
+    #s5-svg, #s5-fx { position: absolute; inset: 0; }
+    #s5-fog { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 45% at 50% 50%, rgba(225, 236, 246, 0.85), rgba(200, 215, 230, 0.35) 60%, rgba(200, 215, 230, 0.1)); }
+    #s5-temp { position: absolute; left: 70px; top: 470px; }
+    #s5-num { font: 800 96px "Inter", sans-serif; color: #fff; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+    #s5-sub { font: 500 28px "Inter", sans-serif; color: #b9b8be; margin-top: 10px; }
+    #s5-foot { position: absolute; left: 70px; top: 1290px; font: 400 28px "Inter", sans-serif; color: #8a898f; }
+  </style>
+  <div id="root" data-composition-id="s5" data-width="1080" data-height="1920">
+    <div id="s5-shake">
+      <svg id="s5-svg" width="1080" height="1920" viewBox="0 -70 1080 1920">
+        <defs>
+          <linearGradient id="s5-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1b20" /><stop offset="0.5" stop-color="#2a292f" /><stop offset="1" stop-color="#16151a" /></linearGradient>
+          <linearGradient id="s5-bezel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1eee8" /><stop offset="0.55" stop-color="#cfcac0" /><stop offset="1" stop-color="#8f8a82" /></linearGradient>
+          <linearGradient id="s5-reveal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d786f" /><stop offset="1" stop-color="#c9c4ba" /></linearGradient>
+          <linearGradient id="s5-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#06173a" /><stop offset="0.45" stop-color="#1d4f9a" /><stop offset="0.8" stop-color="#78aee6" /><stop offset="1" stop-color="#cfe4f7" /></linearGradient>
+          <clipPath id="s5-pane"><rect x="350" y="640" width="380" height="540" rx="170" /></clipPath>
+        </defs>
+        <rect x="150" y="470" width="780" height="880" rx="80" fill="url(#s5-wall)" />
+        <rect x="290" y="570" width="500" height="680" rx="230" fill="url(#s5-bezel)" />
+        <rect id="s5-frost" x="290" y="570" width="500" height="680" rx="230" fill="#bfe6ff" opacity="0" />
+        <rect x="330" y="618" width="420" height="584" rx="190" fill="url(#s5-reveal)" />
+        <g clip-path="url(#s5-pane)">
+          <rect x="340" y="630" width="400" height="560" fill="url(#s5-sky)" />
+          <g fill="#f4f8fc" opacity="0.9"><ellipse cx="540" cy="1170" rx="400" ry="70" /></g>
+          <!-- Scheibe mit Rissen -->
+          <g id="s5-glass">
+            <rect x="340" y="630" width="400" height="560" fill="#ffffff" opacity="0.06" />
+            <g stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path class="s5-crack" d="M 600 860 L 640 820 L 662 826 L 700 770 L 720 700" />
+              <path class="s5-crack" d="M 600 860 L 560 830 L 520 836 L 470 790 L 420 760" />
+              <path class="s5-crack" d="M 600 860 L 580 910 L 600 960 L 570 1030 L 590 1120" />
+              <path class="s5-crack" d="M 600 860 L 660 880 L 700 940 L 740 960" />
+              <path class="s5-crack" d="M 600 860 L 540 900 L 470 900 L 400 960 L 360 1000" />
+              <path class="s5-crack" d="M 640 820 L 600 760 L 610 690" />
+              <path class="s5-crack" d="M 580 910 L 520 980 L 470 1080" />
+              <path class="s5-crack" d="M 560 830 L 545 860 L 600 860 M 580 910 L 620 905 L 660 880" />
+            </g>
+          </g>
+          <g id="s5-shards" fill="#e8f3ff"></g>
+        </g>
+      </svg>
+      <svg id="s5-fx" width="1080" height="1920" viewBox="0 -70 1080 1920"><defs><clipPath id="s5-fxclip"><rect x="0" y="420" width="1080" height="1000" /></clipPath></defs><g id="s5-streaks" clip-path="url(#s5-fxclip)" stroke="#dbeeff" stroke-linecap="round"></g></svg>
+    </div>
+    <div id="s5-fog" style="opacity: 0;"></div>
+    <div id="s5-temp" style="opacity: 0;">
+      <div id="s5-num"><span id="s5-val">22</span> °C</div>
+      <div id="s5-sub">Kabinentemperatur</div>
+    </div>
+    <div id="s5-foot" style="opacity: 0;">Verlangsamt</div>
+  </div>
+  <script>
+    (function () {
+      let seed = 777;
+      const rnd = () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+      const NS = "http://www.w3.org/2000/svg";
+      const CX = 600, CY = 860;
+      // Luftströme, die zum Loch rasen
+      const sg = document.getElementById("s5-streaks"); const streaks = [];
+      for (let i = 0; i < 70; i++) { const l = document.createElementNS(NS, "line"); l.setAttribute("stroke-width", (1.5 + rnd() * 3).toFixed(1)); sg.appendChild(l); streaks.push({ l, a: rnd() * 6.283, off: rnd(), sp: 0.9 + rnd() * 0.8, len: 40 + rnd() * 90 }); }
+      // Splitter
+      const shg = document.getElementById("s5-shards"); const shards = [];
+      for (let i = 0; i < 26; i++) { const p = document.createElementNS(NS, "polygon"); const s = 8 + rnd() * 22; p.setAttribute("points", `0,0 ${s},${(rnd() * s).toFixed(0)} ${(rnd() * s).toFixed(0)},${s}`); shg.appendChild(p); shards.push({ p, a: rnd() * 6.283, d0: 20 + rnd() * 160, rot: rnd() * 360, sp: rnd() * 2 - 1 }); }
+      const tl = gsap.timeline({ paused: true });
+      const clock = { t: 0 };
+      tl.fromTo(clock, { t: 0 }, { t: 7.4, duration: 7.4, ease: "none", onUpdate: () => {
+        const t = clock.t;
+        // Sturm: ab 1.4 s
+        const on = Math.max(0, Math.min(1, (t - 1.4) / 0.3)) * (1 - Math.max(0, Math.min(1, (t - 5.2) / 1.5)) * 0.6);
+        streaks.forEach((s) => {
+          const u = ((t * s.sp * 1.3 + s.off) % 1); const d = (1 - u) * 760 + 60;
+          const x1 = CX + Math.cos(s.a) * d, y1 = CY + Math.sin(s.a) * d, x2 = CX + Math.cos(s.a) * (d + s.len), y2 = CY + Math.sin(s.a) * (d + s.len);
+          s.l.setAttribute("x1", x1.toFixed(1)); s.l.setAttribute("y1", y1.toFixed(1)); s.l.setAttribute("x2", x2.toFixed(1)); s.l.setAttribute("y2", y2.toFixed(1));
+          s.l.setAttribute("opacity", (on * Math.sin(u * Math.PI) * 0.85).toFixed(2));
+        });
+        // Splitter fliegen nach außen (kleiner werdend = weg vom Betrachter)
+        const k = Math.max(0, t - 1.4);
+        shards.forEach((s) => {
+          const sc = Math.max(0, 1 - k * 1.6); const d = s.d0 * (1 - k * 0.7);
+          s.p.setAttribute("transform", `translate(${(CX + Math.cos(s.a) * d).toFixed(1)} ${(CY + Math.sin(s.a) * d).toFixed(1)}) rotate(${(s.rot + k * 300 * s.sp).toFixed(0)}) scale(${sc.toFixed(3)})`);
+          s.p.setAttribute("opacity", t < 1.4 ? 0 : (sc * 0.9).toFixed(2));
+        });
+        // Wackeln der Kamera
+        const sh = t > 0.12 && t < 0.5 ? 9 * (1 - (t - 0.12) / 0.38) : (t > 1.4 && t < 3.0 ? 7 * (1 - (t - 1.4) / 1.6) : 0);
+        document.getElementById("s5-shake").style.transform = `translate(${(Math.sin(t * 71) * sh).toFixed(1)}px, ${(Math.cos(t * 59) * sh).toFixed(1)}px)`;
+      } }, 0);
+      tl.fromTo("#s5-shake", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 0);
+      // Risse wachsen
+      document.querySelectorAll(".s5-crack").forEach((c) => { const L = c.getTotalLength(); c.style.strokeDasharray = L; c.style.strokeDashoffset = L; });
+      tl.to(".s5-crack", { strokeDashoffset: 0, duration: 0.45, ease: "power4.out", stagger: 0.025 }, 0.15);
+      // Scheibe bricht heraus
+      tl.to("#s5-glass", { opacity: 0, scale: 0.6, transformOrigin: "600px 860px", duration: 0.25, ease: "power3.in" }, 1.35);
+      tl.fromTo("#s5-foot", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.5);
+      // Nebel
+      tl.fromTo("#s5-fog", { opacity: 0 }, { opacity: 0.55, duration: 1.4, ease: "power2.out" }, 3.6);
+      tl.to("#s5-fog", { opacity: 0.3, duration: 1.2, ease: "power2.inOut" }, 5.4);
+      // Temperatur
+      tl.fromTo("#s5-temp", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 5.0);
+      const tmp = { v: 22 };
+      tl.fromTo(tmp, { v: 22 }, { v: -56, duration: 1.7, ease: "expo.out", onUpdate: () => { const v = Math.round(tmp.v); document.getElementById("s5-val").textContent = v < 0 ? "−" + Math.abs(v) : v; } }, 5.05);
+      tl.fromTo("#s5-num", { color: "#ffffff" }, { color: "#9fd8ff", duration: 1.2 }, 5.2);
+      tl.fromTo("#s5-frost", { opacity: 0 }, { opacity: 0.45, duration: 1.4 }, 5.2);
+      tl.to(["#s5-shake", "#s5-fog", "#s5-temp", "#s5-foot"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 7.18);
+      window.__timelines["s5"] = tl;
+    })();
+  </script>
+</template>

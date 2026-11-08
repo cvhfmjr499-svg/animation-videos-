@@ -1,0 +1,96 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s3-world { position: absolute; inset: 0; }
+    #s3-svg { position: absolute; inset: 0; }
+    .s3-lbl { position: absolute; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #ecebef; text-transform: uppercase; white-space: nowrap; }
+    #s3-count { position: absolute; left: 70px; top: 500px; }
+    #s3-num { font: 800 120px "Inter", sans-serif; color: #fff; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+    #s3-num small { font-size: 52px; font-weight: 700; margin-left: 10px; }
+    #s3-sub { font: 500 28px "Inter", sans-serif; color: #b9b8be; margin-top: 10px; }
+    #s3-foot { position: absolute; left: 70px; top: 1290px; font: 400 28px "Inter", sans-serif; color: #8a898f; }
+  </style>
+  <div id="root" data-composition-id="s3" data-width="1080" data-height="1920">
+    <div id="s3-world">
+      <svg id="s3-svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+        <defs>
+          <linearGradient id="s3-wall" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#c9c4ba" /><stop offset="0.5" stop-color="#efece6" /><stop offset="1" stop-color="#a9a49b" />
+          </linearGradient>
+          <linearGradient id="s3-glass" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#9fd0ff" stop-opacity="0.55" /><stop offset="1" stop-color="#cfe8ff" stop-opacity="0.85" />
+          </linearGradient>
+          <radialGradient id="s3-inglow" cx="0.2" cy="0.5" r="0.7"><stop offset="0" stop-color="#2b3a52" stop-opacity="0.7" /><stop offset="1" stop-color="#2b3a52" stop-opacity="0" /></radialGradient>
+        </defs>
+        <rect x="60" y="760" width="560" height="520" fill="url(#s3-inglow)" />
+        <g id="s3-dots" fill="#8fc8ff"></g>
+        <!-- Rumpfwand im Schnitt -->
+        <rect x="600" y="740" width="70" height="170" rx="6" fill="url(#s3-wall)" />
+        <rect x="600" y="1130" width="70" height="170" rx="6" fill="url(#s3-wall)" />
+        <!-- Fensterscheibe, wölbt sich nach außen -->
+        <path id="s3-pane" d="M 622 910 Q 622 1020 622 1130 L 648 1130 Q 648 1020 648 910 Z" fill="url(#s3-glass)" stroke="#e6f3ff" stroke-width="2" />
+        <!-- Druckpfeile -->
+        <g id="s3-arrows" stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="#fff">
+          <g class="s3-ar"><line x1="430" y1="940" x2="590" y2="940" /><path d="M 604 940 L 584 928 L 584 952 Z" stroke="none" /></g>
+          <g class="s3-ar"><line x1="430" y1="990" x2="590" y2="990" /><path d="M 604 990 L 584 978 L 584 1002 Z" stroke="none" /></g>
+          <g class="s3-ar"><line x1="430" y1="1040" x2="590" y2="1040" /><path d="M 604 1040 L 584 1028 L 584 1052 Z" stroke="none" /></g>
+          <g class="s3-ar"><line x1="430" y1="1090" x2="590" y2="1090" /><path d="M 604 1090 L 584 1078 L 584 1102 Z" stroke="none" /></g>
+        </g>
+        <!-- Konzertflügel (Silhouette) -->
+        <g id="s3-piano" opacity="0"><g transform="translate(110 1010)">
+          <path d="M 0 60 L 0 20 Q 0 0 20 0 L 150 0 Q 230 0 260 50 Q 280 80 330 85 Q 360 90 360 115 L 360 130 L 0 130 Z" fill="#e9e7e3" />
+          <rect x="0" y="128" width="360" height="14" fill="#bdb9b2" />
+          <rect x="18" y="142" width="14" height="70" fill="#bdb9b2" />
+          <rect x="300" y="142" width="14" height="70" fill="#bdb9b2" />
+          <rect x="150" y="142" width="14" height="60" fill="#bdb9b2" />
+          <path d="M 30 0 L 120 -90" stroke="#bdb9b2" stroke-width="6" />
+        </g></g>
+        <g id="s3-co" opacity="0">
+          <line x1="740" y1="1020" x2="660" y2="1020" stroke="#e8e7ea" stroke-width="2" />
+        </g>
+      </svg>
+      <div class="s3-lbl" id="s3-lbl-in" style="left: 70px; top: 1220px; opacity: 0;">Innen</div>
+      <div class="s3-lbl" id="s3-lbl-out" style="left: 900px; top: 1220px; opacity: 0;">Außen</div>
+      <div class="s3-lbl" id="s3-lbl-pane" style="left: 752px; top: 1005px; opacity: 0;">Fenster</div>
+      <div class="s3-lbl" id="s3-lbl-piano" style="left: 110px; top: 870px; opacity: 0;">Konzertflügel ≈ 480 kg</div>
+    </div>
+    <div id="s3-count" style="opacity: 0;">
+      <div id="s3-num"><span id="s3-val">0</span><small>kg</small></div>
+      <div id="s3-sub">Kraft auf ein Fenster</div>
+    </div>
+    <div id="s3-foot" style="opacity: 0;">Fenster ca. 26 × 37 cm · Druckunterschied 0,52 bar</div>
+  </div>
+  <script>
+    (function () {
+      let seed = 4242;
+      const rnd = () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+      const NS = "http://www.w3.org/2000/svg";
+      const g = document.getElementById("s3-dots"); const dots = [];
+      for (let i = 0; i < 150; i++) { const c = document.createElementNS(NS, "circle"); c.setAttribute("r", 4); c.setAttribute("opacity", 0.8); g.appendChild(c); dots.push({ c, x: 80 + rnd() * 500, y: 760 + rnd() * 520, ph: rnd() * 6.28, w: 0.8 + rnd() * 1.4 }); }
+      for (let i = 0; i < 20; i++) { const c = document.createElementNS(NS, "circle"); c.setAttribute("r", 4); c.setAttribute("opacity", 0.5); g.appendChild(c); dots.push({ c, x: 700 + rnd() * 320, y: 760 + rnd() * 520, ph: rnd() * 6.28, w: 0.6 + rnd() }); }
+      const tl = gsap.timeline({ paused: true });
+      const clock = { t: 0 };
+      tl.fromTo(clock, { t: 0 }, { t: 6.5, duration: 6.5, ease: "none", onUpdate: () => {
+        for (const p of dots) { p.c.setAttribute("cx", (p.x + Math.sin(clock.t * p.w * 2 + p.ph) * 9).toFixed(1)); p.c.setAttribute("cy", (p.y + Math.cos(clock.t * p.w * 1.7 + p.ph) * 9).toFixed(1)); }
+      } }, 0);
+      tl.fromTo("#s3-world", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
+      tl.fromTo(["#s3-lbl-in", "#s3-lbl-out"], { opacity: 0 }, { opacity: 1, duration: 0.25, stagger: 0.08 }, 0.3);
+      tl.fromTo("#s3-co", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.5);
+      tl.fromTo("#s3-lbl-pane", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 0.55);
+      tl.fromTo("#s3-foot", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.6);
+      // "drückt": Pfeile schieben, Scheibe wölbt sich
+      tl.fromTo(".s3-ar", { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.45, ease: "expo.out", stagger: 0.06 }, 1.15);
+      tl.fromTo("#s3-pane", { attr: { d: "M 622 910 Q 622 1020 622 1130 L 648 1130 Q 648 1020 648 910 Z" } }, { attr: { d: "M 622 910 Q 652 1020 622 1130 L 648 1130 Q 678 1020 648 910 Z" }, duration: 2.6, ease: "power2.out" }, 1.2);
+      // Zähler bis 510 kg bei "500"
+      tl.fromTo("#s3-count", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 2.5);
+      const kg = { v: 0 };
+      tl.fromTo(kg, { v: 0 }, { v: 510, duration: 1.4, ease: "expo.out", onUpdate: () => { document.getElementById("s3-val").textContent = Math.round(kg.v); } }, 2.5);
+      // Konzertflügel als Vergleich
+      tl.to(".s3-ar", { opacity: 0.25, duration: 0.3 }, 4.5);
+      tl.fromTo("#s3-piano", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 4.6);
+      tl.fromTo("#s3-lbl-piano", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 4.75);
+      tl.to(["#s3-world", "#s3-count", "#s3-foot"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 6.28);
+      window.__timelines["s3"] = tl;
+    })();
+  </script>
+</template>

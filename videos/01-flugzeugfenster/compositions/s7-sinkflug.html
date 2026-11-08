@@ -1,0 +1,68 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s7-world { position: absolute; inset: 0; }
+    #s7-svg { position: absolute; inset: 0; }
+    .s7-ax { font: 500 28px "Inter", sans-serif; fill: #b9b8be; }
+    .s7-axt { font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; fill: #b9b8be; }
+    #s7-alt { position: absolute; left: 70px; top: 470px; }
+    #s7-num { font: 800 96px "Inter", sans-serif; color: #fff; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+    #s7-num small { font-size: 44px; font-weight: 700; margin-left: 8px; }
+    #s7-sub { font: 500 28px "Inter", sans-serif; color: #b9b8be; margin-top: 10px; }
+    #s7-foot { position: absolute; left: 70px; top: 1290px; font: 400 28px "Inter", sans-serif; color: #8a898f; }
+  </style>
+  <div id="root" data-composition-id="s7" data-width="1080" data-height="1920">
+    <div id="s7-world">
+      <svg id="s7-svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+        <!-- Diagramm: x 170..940 (0..6 min), y 1180 (0 m) .. 680 (12.000 m) -->
+        <rect id="s7-safe" x="170" y="1055" width="770" height="125" fill="#1fbf7a" opacity="0" />
+        <text id="s7-safe-t" x="930" y="1125" text-anchor="end" class="s7-axt" style="fill:#4fe0a0" opacity="0">ATEMBAR OHNE MASKE</text>
+        <g stroke="rgba(255,255,255,0.14)" stroke-width="2">
+          <line x1="170" y1="930" x2="940" y2="930" /><line x1="170" y1="805" x2="940" y2="805" /><line x1="170" y1="1055" x2="940" y2="1055" stroke-dasharray="8 8" />
+        </g>
+        <line x1="170" y1="680" x2="170" y2="1180" stroke="#e8e7ea" stroke-width="2" />
+        <line x1="170" y1="1180" x2="940" y2="1180" stroke="#e8e7ea" stroke-width="2" />
+        <text x="150" y="1064" text-anchor="end" class="s7-ax">3</text>
+        <text x="150" y="939" text-anchor="end" class="s7-ax">6</text>
+        <text x="150" y="814" text-anchor="end" class="s7-ax">9</text>
+        <text x="150" y="689" text-anchor="end" class="s7-ax">12</text>
+        <text x="170" y="1222" text-anchor="middle" class="s7-ax">0</text>
+        <text x="427" y="1222" text-anchor="middle" class="s7-ax">2</text>
+        <text x="683" y="1222" text-anchor="middle" class="s7-ax">4</text>
+        <text x="940" y="1222" text-anchor="middle" class="s7-ax">6</text>
+        <text x="555" y="1262" text-anchor="middle" class="s7-axt">ZEIT (MIN)</text>
+        <text x="110" y="650" class="s7-axt">HÖHE (KM)</text>
+        <path id="s7-path" d="M 170 722 L 240 722 C 300 722 330 760 380 830 L 610 1020 C 650 1052 670 1055 720 1055 L 940 1055" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" />
+        <g id="s7-dot"><circle r="22" fill="#ffffff" opacity="0.18" /><circle r="10" fill="#ffffff" /></g>
+      </svg>
+    </div>
+    <div id="s7-alt" style="opacity: 0;">
+      <div id="s7-num"><span id="s7-val">11.000</span><small>m</small></div>
+      <div id="s7-sub">Notabstieg</div>
+    </div>
+    <div id="s7-foot" style="opacity: 0;">Typisch etwa 4 Minuten bis 3.000 m</div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const path = document.getElementById("s7-path"); const L = path.getTotalLength();
+      path.style.strokeDasharray = L; path.style.strokeDashoffset = L;
+      const dot = document.getElementById("s7-dot");
+      tl.fromTo("#s7-world", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
+      tl.fromTo("#s7-alt", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.2);
+      tl.fromTo("#s7-foot", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.4);
+      const pr = { u: 0 };
+      tl.fromTo(pr, { u: 0 }, { u: 1, duration: 3.4, ease: "power1.inOut", onUpdate: () => {
+        const len = L * pr.u; path.style.strokeDashoffset = L - len;
+        const p = path.getPointAtLength(len); dot.setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
+        const m = Math.max(3000, Math.min(11000, (1180 - p.y) / 500 * 12000));
+        document.getElementById("s7-val").textContent = (Math.round(m / 100) * 100).toLocaleString("de-DE");
+      } }, 0.5);
+      tl.fromTo("#s7-safe", { opacity: 0 }, { opacity: 0.16, duration: 0.5 }, 3.6);
+      tl.fromTo("#s7-safe-t", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 3.7);
+      tl.fromTo("#s7-num", { color: "#ffffff" }, { color: "#4fe0a0", duration: 0.4 }, 3.7);
+      tl.to(["#s7-world", "#s7-alt", "#s7-foot"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 5.38);
+      window.__timelines["s7"] = tl;
+    })();
+  </script>
+</template>

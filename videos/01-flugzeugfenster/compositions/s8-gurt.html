@@ -1,0 +1,64 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s8-world { position: absolute; inset: 0; }
+    #s8-svg { position: absolute; inset: 0; }
+    .s8-lbl { position: absolute; font: 600 28px "Inter", sans-serif; letter-spacing: 0.14em; color: #ecebef; text-transform: uppercase; white-space: nowrap; }
+  </style>
+  <div id="root" data-composition-id="s8" data-width="1080" data-height="1920">
+    <div id="s8-world">
+      <svg id="s8-svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+        <defs>
+          <linearGradient id="s8-metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f5f7" /><stop offset="0.5" stop-color="#b9bdc4" /><stop offset="1" stop-color="#7c818a" /></linearGradient>
+          <linearGradient id="s8-strap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5468" /><stop offset="1" stop-color="#2c3342" /></linearGradient>
+          <radialGradient id="s8-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffcf4a" stop-opacity="0.6" /><stop offset="1" stop-color="#ffcf4a" stop-opacity="0" /></radialGradient>
+        </defs>
+        <!-- Anschnallzeichen -->
+        <g id="s8-sign">
+          <circle cx="540" cy="620" r="120" fill="url(#s8-glow)" id="s8-halo" opacity="0" />
+          <rect x="460" y="570" width="160" height="100" rx="18" fill="#2a2a2f" stroke="#55555c" stroke-width="3" />
+          <g id="s8-icon" fill="#5a5a60">
+            <circle cx="540" cy="595" r="12" />
+            <path d="M 520 660 L 524 618 Q 540 610 556 618 L 560 660 Z" />
+            <rect x="512" y="632" width="56" height="9" rx="4" />
+          </g>
+        </g>
+        <!-- Gurt: links Schloss-Zunge, rechts Schloss -->
+        <g id="s8-left">
+          <rect x="-40" y="935" width="380" height="70" fill="url(#s8-strap)" />
+          <g stroke="rgba(255,255,255,0.06)" stroke-width="2"><line x1="-40" y1="950" x2="340" y2="950" /><line x1="-40" y1="990" x2="340" y2="990" /></g>
+          <rect x="330" y="920" width="70" height="100" rx="10" fill="url(#s8-metal)" />
+          <path d="M 400 940 L 480 940 Q 492 940 492 952 L 492 988 Q 492 1000 480 1000 L 400 1000 Z" fill="url(#s8-metal)" />
+          <rect x="420" y="958" width="44" height="24" rx="6" fill="#2a2d33" />
+        </g>
+        <g id="s8-right">
+          <rect x="740" y="935" width="400" height="70" fill="url(#s8-strap)" />
+          <g stroke="rgba(255,255,255,0.06)" stroke-width="2"><line x1="740" y1="950" x2="1140" y2="950" /><line x1="740" y1="990" x2="1140" y2="990" /></g>
+          <rect x="560" y="905" width="200" height="130" rx="22" fill="url(#s8-metal)" />
+          <rect x="590" y="935" width="140" height="70" rx="10" fill="#9ca1a9" opacity="0.6" />
+          <path d="M 560 935 L 600 935 L 600 1005 L 560 1005 Z" fill="#20232a" />
+        </g>
+      </svg>
+      <div class="s8-lbl" id="s8-lbl" style="left: 590px; top: 1080px; opacity: 0;">Sicherheitsgurt</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#s8-world", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 0);
+      // Zeichen leuchtet auf
+      tl.fromTo("#s8-halo", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.25);
+      tl.fromTo("#s8-icon", { attr: { fill: "#5a5a60" } }, { attr: { fill: "#ffcf4a" }, duration: 0.2 }, 0.25);
+      // Gurt schnappt ein
+      tl.fromTo("#s8-left", { x: -200 }, { x: 160, duration: 0.5, ease: "power3.in" }, 0.25);
+      tl.fromTo("#s8-right", { x: 160 }, { x: 0, duration: 0.5, ease: "power3.in" }, 0.25);
+      tl.fromTo("#s8-world", { scale: 1 }, { scale: 1.02, duration: 0.08, ease: "power2.out", transformOrigin: "540px 970px", immediateRender: false }, 0.75);
+      tl.to("#s8-world", { scale: 1, duration: 0.3, ease: "power2.out" }, 0.83);
+      tl.fromTo("#s8-lbl", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25 }, 0.9);
+      // Gurt strafft sich bei "Sitz"
+      tl.to("#s8-left", { x: 146, duration: 0.25, ease: "power3.out" }, 2.4);
+      tl.to("#s8-right", { x: 14, duration: 0.25, ease: "power3.out" }, 2.4);
+      window.__timelines["s8"] = tl;
+    })();
+  </script>
+</template>
