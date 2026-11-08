@@ -17,10 +17,10 @@
 - `hyperframes check`: 0 Fehler; verbleibende Warnungen bewusst (Untertitel-Datei groß/dicht, weil generiert;
   z-index des Auswahlrahmens).
 - Review-Sheets inkl. Handybreite (360 px) angesehen; Text im Band 168–1330 px.
-- Ton nur gemessen, nicht gehört: Bundled SFX (Whoosh, Pop, Riser→Impact, Klick). Keine Musik und kein Voiceover
-  (kein HeyGen-Login; lokaler TTS kann kein Deutsch).
+- Voiceover: Microsoft „Andrew“ (en-US-AndrewMultilingualNeural, Deutsch) via edge-tts, Tempo +10 %, 61,2 s.
+  Untertitel auf echte Wortzeiten, Szenen per Zeit-Warp auf die Stimme getaktet. Ton nur gemessen, nicht gehört.
+- Instagram-Logo entfernt, nur noch Handle.
 
 ## Schwächste Stelle / nächster Schritt
-- Ohne Voiceover tragen nur Untertitel + SFX. Mit deutschem Voiceover (HeyGen) Wortzeiten per transcribe
-  übernehmen und `script.json` neu bauen.
+- Keine Musik (kein Katalogzugang); ein ruhiges Musikbett unter der Stimme würde helfen.
 - Figuren (Szene 6) sind sehr reduziert; mit mehr Zeit detailliertere Personen-Illustrationen.

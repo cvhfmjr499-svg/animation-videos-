@@ -101,4 +101,15 @@
     tl.fromTo("#s1-cam", { scale: 1.06, filter: "blur(0px)", opacity: 1 }, { scale: 3.2, filter: "blur(10px)", opacity: 0, duration: 0.6, ease: "power3.in", immediateRender: false }, 6.0);
     window.__timelines["s1"] = tl;
   </script>
+  <script>
+    /* WARP START */
+    (function () {
+      const tl = window.__timelines["s1"].__src || window.__timelines["s1"];
+      const w = [[0.0, 0.0], [0.15, 0.172], [1.6, 1.479], [3.0, 2.775], [4.0, 3.445], [5.5, 4.676], [6.6, 5.869]];
+      const o = gsap.timeline({ paused: true }); o.__src = tl;
+      for (let i = 0; i < w.length - 1; i++) o.fromTo(tl, { time: w[i][0] }, { time: w[i + 1][0], duration: Math.max(0.001, w[i + 1][1] - w[i][1]), ease: "none", immediateRender: false }, w[i][1]);
+      window.__timelines["s1"] = o;
+    })();
+    /* WARP END */
+  </script>
 </template>

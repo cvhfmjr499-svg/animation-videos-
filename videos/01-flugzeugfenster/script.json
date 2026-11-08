@@ -3,304 +3,713 @@
  "groups": [
   {
    "t": [
+    0.172,
+    1.479
+   ],
+   "text": "Was würde *passieren,*",
+   "t0": [
     0.15,
     1.6
    ],
-   "text": "Was würde *passieren,*"
+   "words": [
+    0.252,
+    0.423,
+    0.605
+   ]
   },
   {
    "t": [
+    1.479,
+    2.775
+   ],
+   "text": "wenn in *11.000* Metern",
+   "say": "wenn in elftausend Metern",
+   "t0": [
     1.6,
     3
    ],
-   "text": "wenn in *11.000* Metern"
+   "words": [
+    1.559,
+    1.684,
+    1.798,
+    2.434
+   ]
   },
   {
    "t": [
+    2.775,
+    3.445
+   ],
+   "text": "dein *Fenster*",
+   "t0": [
     3,
     4
    ],
-   "text": "dein *Fenster*"
+   "words": [
+    2.855,
+    3.059
+   ]
   },
   {
    "t": [
+    3.445,
+    4.676
+   ],
+   "text": "plötzlich *bricht?*",
+   "t0": [
     4,
     5.5
    ],
-   "text": "plötzlich *bricht?*"
+   "words": [
+    3.525,
+    3.991
+   ]
   },
   {
    "t": [
+    4.676,
+    5.869
+   ],
+   "text": "Um das zu verstehen:",
+   "t0": [
     5.5,
     6.6
    ],
-   "text": "Um das zu verstehen:"
+   "words": [
+    4.756,
+    4.824,
+    4.96,
+    5.074
+   ]
   },
   {
    "t": [
+    5.869,
+    7.062
+   ],
+   "text": "Da draußen ist die *Luft*",
+   "t0": [
     6.6,
     8
    ],
-   "text": "Da draußen ist die *Luft*"
+   "words": [
+    5.949,
+    6.12,
+    6.62,
+    6.745,
+    6.858
+   ]
   },
   {
    "t": [
+    7.062,
+    7.949
+   ],
+   "text": "so *dünn,*",
+   "t0": [
     8,
     9
    ],
-   "text": "so *dünn,*"
+   "words": [
+    7.142,
+    7.415
+   ]
   },
   {
    "t": [
+    7.949,
+    8.937
+   ],
+   "text": "dass du in Sekunden",
+   "t0": [
     9,
     10.2
    ],
-   "text": "dass du in Sekunden"
+   "words": [
+    8.029,
+    8.176,
+    8.313,
+    8.404
+   ]
   },
   {
    "t": [
+    8.937,
+    10.294
+   ],
+   "text": "*ohnmächtig* wärst.",
+   "t0": [
     10.2,
     11.5
    ],
-   "text": "*ohnmächtig* wärst."
+   "words": [
+    9.017,
+    9.62
+   ]
   },
   {
    "t": [
+    10.294,
+    11.521
+   ],
+   "text": "Also *pumpt* das Flugzeug",
+   "t0": [
     11.5,
     12.9
    ],
-   "text": "Also *pumpt* das Flugzeug"
+   "words": [
+    10.374,
+    10.601,
+    10.908,
+    11.078
+   ]
   },
   {
    "t": [
+    11.521,
+    13.469
+   ],
+   "text": "ständig Luft in die Kabine.",
+   "t0": [
     12.9,
     14.3
    ],
-   "text": "ständig Luft in die Kabine."
+   "words": [
+    11.601,
+    12.09,
+    12.522,
+    12.624,
+    12.726
+   ]
   },
   {
    "t": [
+    13.469,
+    16.473
+   ],
+   "text": "Drinnen: *0,75* bar.",
+   "say": "Drinnen: null Komma fünfundsiebzig bar.",
+   "t0": [
     14.3,
     15.7
    ],
-   "text": "Drinnen: *0,75* bar."
+   "words": [
+    13.549,
+    14.322,
+    14.935
+   ]
   },
   {
    "t": [
+    16.473,
+    19.477
+   ],
+   "text": "Draußen: nur *0,23.*",
+   "say": "Draußen: nur null Komma dreiundzwanzig.",
+   "t0": [
     15.7,
     17.4
    ],
-   "text": "Draußen: nur *0,23.*"
+   "words": [
+    16.553,
+    17.382,
+    17.871
+   ]
   },
   {
    "t": [
+    19.477,
+    20.522
+   ],
+   "text": "Dieser Unterschied",
+   "t0": [
     17.4,
     18.5
    ],
-   "text": "Dieser Unterschied"
+   "words": [
+    19.557,
+    19.921
+   ]
   },
   {
    "t": [
+    20.522,
+    22.0
+   ],
+   "text": "*drückt* auf jedes Fenster",
+   "t0": [
     18.5,
     19.9
    ],
-   "text": "*drückt* auf jedes Fenster"
+   "words": [
+    20.602,
+    20.989,
+    21.216,
+    21.546
+   ]
   },
   {
    "t": [
+    22.0,
+    23.697
+   ],
+   "text": "mit rund *500* Kilo.",
+   "say": "mit rund fünfhundert Kilo.",
+   "t0": [
     19.9,
     21.8
    ],
-   "text": "mit rund *500* Kilo."
+   "words": [
+    22.08,
+    22.227,
+    22.489,
+    23.034
+   ]
   },
   {
    "t": [
+    23.697,
+    25.564
+   ],
+   "text": "So viel wie ein *Konzertflügel.*",
+   "t0": [
     21.8,
     23.9
    ],
-   "text": "So viel wie ein *Konzertflügel.*"
+   "words": [
+    23.777,
+    23.89,
+    24.129,
+    24.288,
+    24.39
+   ]
   },
   {
    "t": [
+    25.564,
+    27.114
+   ],
+   "text": "Deshalb hat es *drei* Scheiben.",
+   "theme": "light",
+   "t0": [
     23.9,
     25.6
    ],
-   "text": "Deshalb hat es *drei* Scheiben.",
-   "theme": "light"
+   "words": [
+    25.644,
+    25.917,
+    26.03,
+    26.133,
+    26.405
+   ]
   },
   {
    "t": [
+    27.114,
+    27.864
+   ],
+   "text": "Und in der mittleren",
+   "theme": "light",
+   "t0": [
     25.6,
     26.7
    ],
-   "text": "Und in der mittleren",
-   "theme": "light"
+   "words": [
+    27.194,
+    27.296,
+    27.353,
+    27.444
+   ]
   },
   {
    "t": [
+    27.864,
+    29.413
+   ],
+   "text": "ist ein winziges *Loch.*",
+   "theme": "light",
+   "t0": [
     26.7,
     28.4
    ],
-   "text": "ist ein winziges *Loch.*",
-   "theme": "light"
+   "words": [
+    27.944,
+    28.092,
+    28.273,
+    28.773
+   ]
   },
   {
    "t": [
+    29.413,
+    30.561
+   ],
+   "text": "Es sorgt dafür,",
+   "theme": "light",
+   "t0": [
     28.4,
     29.4
    ],
-   "text": "Es sorgt dafür,",
-   "theme": "light"
+   "words": [
+    29.493,
+    29.618,
+    29.857
+   ]
   },
   {
    "t": [
+    30.561,
+    31.766
+   ],
+   "text": "dass nur die *äußere* Scheibe",
+   "theme": "light",
+   "t0": [
     29.4,
     30.9
    ],
-   "text": "dass nur die *äußere* Scheibe",
-   "theme": "light"
+   "words": [
+    30.641,
+    30.777,
+    30.925,
+    31.061,
+    31.459
+   ]
   },
   {
    "t": [
+    31.766,
+    33.02
+   ],
+   "text": "den Druck trägt.",
+   "theme": "light",
+   "t0": [
     30.9,
     31.9
    ],
-   "text": "den Druck trägt.",
-   "theme": "light"
+   "words": [
+    31.846,
+    31.993,
+    32.277
+   ]
   },
   {
    "t": [
+    33.02,
+    34.774
+   ],
+   "text": "Die mittlere ist die *Reserve.*",
+   "theme": "light",
+   "t0": [
     31.9,
     33.6
    ],
-   "text": "Die mittlere ist die *Reserve.*",
-   "theme": "light"
+   "words": [
+    33.1,
+    33.225,
+    33.725,
+    33.85,
+    33.952
+   ]
   },
   {
    "t": [
+    34.774,
+    36.342
+   ],
+   "text": "Brechen trotzdem *beide,*",
+   "t0": [
     33.6,
     35
    ],
-   "text": "Brechen trotzdem *beide,*"
+   "words": [
+    34.854,
+    35.195,
+    35.649
+   ]
   },
   {
    "t": [
+    36.342,
+    36.978
+   ],
+   "text": "*rast* die Luft",
+   "t0": [
     35,
     36
    ],
-   "text": "*rast* die Luft"
+   "words": [
+    36.422,
+    36.615,
+    36.729
+   ]
   },
   {
    "t": [
+    36.978,
+    38.517
+   ],
+   "text": "in *Sekunden* hinaus.",
+   "t0": [
     36,
     37.2
    ],
-   "text": "in *Sekunden* hinaus."
+   "words": [
+    37.058,
+    37.183,
+    37.718
+   ]
   },
   {
    "t": [
+    38.517,
+    39.778
+   ],
+   "text": "Die Kabine wird *neblig*",
+   "t0": [
     37.2,
     38.6
    ],
-   "text": "Die Kabine wird *neblig*"
+   "words": [
+    38.597,
+    38.665,
+    39.097,
+    39.29
+   ]
   },
   {
    "t": [
+    39.778,
+    40.858
+   ],
+   "text": "und *eiskalt:*",
+   "t0": [
     38.6,
     39.6
    ],
-   "text": "und *eiskalt:*"
+   "words": [
+    39.858,
+    40.029
+   ]
   },
   {
    "t": [
+    40.858,
+    42.907
+   ],
+   "text": "minus *56* Grad.",
+   "say": "minus sechsundfünfzig Grad.",
+   "t0": [
     39.6,
     41
    ],
-   "text": "minus *56* Grad."
+   "words": [
+    40.938,
+    41.336,
+    42.211
+   ]
   },
   {
    "t": [
+    42.907,
+    44.093
+   ],
+   "text": "Die *Masken* fallen.",
+   "t0": [
     41,
     42.4
    ],
-   "text": "Die *Masken* fallen."
+   "words": [
+    42.987,
+    43.055,
+    43.453
+   ]
   },
   {
    "t": [
+    44.093,
+    44.616
+   ],
+   "text": "Und du hast nur",
+   "t0": [
     42.4,
     43.4
    ],
-   "text": "Und du hast nur"
+   "words": [
+    44.173,
+    44.275,
+    44.366,
+    44.571
+   ]
   },
   {
    "t": [
+    44.616,
+    46.741
+   ],
+   "text": "*15* bis 30 Sekunden,",
+   "say": "fünfzehn bis dreißig Sekunden,",
+   "t0": [
     43.4,
     45
    ],
-   "text": "*15* bis 30 Sekunden,"
+   "words": [
+    44.696,
+    45.275,
+    45.434,
+    45.889
+   ]
   },
   {
    "t": [
+    46.741,
+    48.813
+   ],
+   "text": "bevor dein *Gehirn* abschaltet.",
+   "t0": [
     45,
     47.2
    ],
-   "text": "bevor dein *Gehirn* abschaltet."
+   "words": [
+    46.821,
+    47.196,
+    47.389,
+    47.866
+   ]
   },
   {
    "t": [
+    48.813,
+    50.7
+   ],
+   "text": "Also: erst *deine* Maske,",
+   "t0": [
     47.2,
     48.8
    ],
-   "text": "Also: erst *deine* Maske,"
+   "words": [
+    48.893,
+    49.7,
+    49.802,
+    49.996
+   ]
   },
   {
    "t": [
+    50.7,
+    51.783
+   ],
+   "text": "dann die anderen.",
+   "t0": [
     48.8,
     50
    ],
-   "text": "dann die anderen."
+   "words": [
+    50.78,
+    50.927,
+    51.086
+   ]
   },
   {
    "t": [
+    51.783,
+    52.419
+   ],
+   "text": "Die Piloten",
+   "t0": [
     50,
     50.8
    ],
-   "text": "Die Piloten"
+   "words": [
+    51.863,
+    51.942
+   ]
   },
   {
    "t": [
+    52.419,
+    53.601
+   ],
+   "text": "gehen in den *Sturzflug*",
+   "t0": [
     50.8,
     52.2
    ],
-   "text": "gehen in den *Sturzflug*"
+   "words": [
+    52.499,
+    52.727,
+    52.795,
+    52.931
+   ]
   },
   {
    "t": [
+    53.601,
+    55.31
+   ],
+   "text": "auf *3.000* Meter.",
+   "say": "auf dreitausend Meter.",
+   "t0": [
     52.2,
     53.6
    ],
-   "text": "auf *3.000* Meter."
+   "words": [
+    53.681,
+    53.852,
+    54.59
+   ]
   },
   {
    "t": [
+    55.31,
+    56.803
+   ],
+   "text": "Dort kannst du wieder *atmen.*",
+   "t0": [
     53.6,
     55.6
    ],
-   "text": "Dort kannst du wieder *atmen.*"
+   "words": [
+    55.39,
+    55.572,
+    55.833,
+    55.913,
+    56.129
+   ]
   },
   {
    "t": [
+    56.803,
+    57.762
+   ],
+   "text": "Und dein *Gurt?*",
+   "t0": [
     55.6,
     56.9
    ],
-   "text": "Und dein *Gurt?*"
+   "words": [
+    56.883,
+    56.974,
+    57.167
+   ]
   },
   {
    "t": [
+    57.762,
+    61.23
+   ],
+   "text": "Der hält dich auf deinem *Sitz.*",
+   "t0": [
     56.9,
     60
    ],
-   "text": "Der hält dich auf deinem *Sitz.*"
+   "words": [
+    57.842,
+    57.933,
+    58.126,
+    58.342,
+    58.478,
+    58.751
+   ]
   }
  ]
 }

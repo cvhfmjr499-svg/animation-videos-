@@ -43,9 +43,9 @@
           <ellipse cx="720" cy="592" rx="22" ry="15" fill="#ffffff" opacity="0.25" />
         </g>
         <!-- Deckenpanel -->
-        <rect x="160" y="500" width="760" height="100" rx="18" fill="url(#s6-panel)" />
-        <rect id="s6-light" x="790" y="530" width="80" height="36" rx="8" fill="#ffcf4a" opacity="0.25" />
-        <path d="M 812 548 L 848 548" stroke="#3a3730" stroke-width="5" stroke-linecap="round" />
+        <rect x="160" y="500" width="640" height="100" rx="18" fill="url(#s6-panel)" />
+        <rect id="s6-light" x="690" y="530" width="80" height="36" rx="8" fill="#ffcf4a" opacity="0.25" />
+        <path d="M 712 548 L 748 548" stroke="#3a3730" stroke-width="5" stroke-linecap="round" />
         <rect x="300" y="596" width="180" height="10" rx="4" fill="#3a3730" />
         <!-- Klappe -->
         <rect id="s6-flap" x="300" y="596" width="180" height="16" rx="4" fill="#cfcbc3" />
@@ -97,5 +97,16 @@
       tl.to(["#s6-world", "#s6-foot"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 8.78);
       window.__timelines["s6"] = tl;
     })();
+  </script>
+  <script>
+    /* WARP START */
+    (function () {
+      const tl = window.__timelines["s6"].__src || window.__timelines["s6"];
+      const w = [[0.0, 0.0], [1.4, 1.186], [2.4, 1.709], [4.0, 3.834], [6.2, 5.906], [7.8, 7.793], [9.0, 8.876], [9.0, 8.876]];
+      const o = gsap.timeline({ paused: true }); o.__src = tl;
+      for (let i = 0; i < w.length - 1; i++) o.fromTo(tl, { time: w[i][0] }, { time: w[i + 1][0], duration: Math.max(0.001, w[i + 1][1] - w[i][1]), ease: "none", immediateRender: false }, w[i][1]);
+      window.__timelines["s6"] = o;
+    })();
+    /* WARP END */
   </script>
 </template>

@@ -44,8 +44,8 @@ Jede Zahl stimmt und ist geprüft; Quelle/Annahme steht als Fußnote im Bild.
 - **Zähler:** 96–120 px, 800, oben links (left 70, top ≈ 470–500), Einheit kleiner daneben, Unterzeile grau.
 - **Fußnote:** 28 px grau unten links (top ≈ 1290): „Verlangsamt“, „Vereinfachte Darstellung“,
   „Schematisch, Abstände übertrieben“, Quellenangabe.
-- **Wasserzeichen:** Instagram-Icon + `@HANDLE` (Oswald, Versalien) rechts bei top 500, `mix-blend-mode: difference`
-  (funktioniert auf hell und dunkel). Handle ist die Variable `handle`.
+- **Wasserzeichen:** nur `@HANDLE` (Oswald, Versalien) rechts bei top 500, `mix-blend-mode: difference`
+  (funktioniert auf hell und dunkel). **Kein Instagram-Logo.** Handle ist die Variable `handle`.
 - **Illustrationen:** flaches, sauberes SVG mit weichen Verläufen, Glanzlichtern und Glow; Akzentfarben:
   Luft/Feld `#8fc8ff`, Warnung `#ff4d4d`, sicher `#1fbf7a`/`#4fe0a0`, Signal gelb `#ffcf4a`.
   Diagramme: weiße Linie 5 px, graue Achsen, wandernder Punkt mit Halo.
@@ -60,11 +60,15 @@ Jede Zahl stimmt und ist geprüft; Quelle/Annahme steht als Fußnote im Bild.
 
 ## 4. Ton
 
-Bundled SFX aus `/media-use` (`assets/sfx/`): Whoosh beim Szenenwechsel, Pop wenn eine Zahl landet,
-Riser → Impact genau einmal beim Payoff, Klick bei echten Klicks (Gurt, Klappe). Jede `<audio>` mit `id`,
-`data-duration` = Dateilänge. Deutsches Voiceover: HeyGen (`npx hyperframes auth login`, dann `/media-use`
-voice) – der lokale Kokoro-TTS kann kein Deutsch. Mit Voiceover die Wortzeiten per
-`npx hyperframes transcribe <datei> --model small --language de` holen und in `script.json` als `words` eintragen.
+- **Voiceover (Pflicht):** Microsoft-Stimme **Andrew** (`en-US-AndrewMultilingualNeural`, spricht Deutsch) über
+  `edge-tts` (`pip install edge-tts`). `python3 -I tools/voiceover.py videos/<projekt> --target 60`:
+  erzeugt je Satz eine MP3, nimmt die echten Wortzeiten für die Untertitel und **verzerrt die Szenen-Zeit
+  stückweise**, sodass jede Animation auf ihrem Wort landet (Anker = Gruppenstarts, Warp-Block am Ende jeder
+  Szene, `data-orig-start` in index.html). Zahlen im Feld `"say"` ausschreiben („elftausend“, „null Komma
+  fünfundsiebzig“). Danach immer `node tools/build-captions.mjs videos/<projekt>`.
+- Bundled SFX aus `/media-use` (`assets/sfx/`): Whoosh beim Szenenwechsel, Pop wenn eine Zahl landet,
+  Riser → Impact genau einmal beim Payoff, Klick bei echten Klicks (Gurt, Klappe). Jede `<audio>` mit `id`,
+  `data-duration` = Dateilänge. Leise genug unter der Stimme (0,4–0,6).
 
 ## 5. Arbeitsablauf
 
@@ -72,8 +76,11 @@ voice) – der lokale Kokoro-TTS kann kein Deutsch. Mit Voiceover die Wortzeiten
    Fakten prüfen.
 2. `npx hyperframes init videos/<nr>-<thema> --skip-skills --skill=hyperframes`, dann `index.html` nach Vorlage
    (`videos/01-flugzeugfenster/index.html`: 1080×1920, `#ground`, Szenen-Hosts, Wasserzeichen, Untertitel, Audio).
-3. Untertitel bauen: `node tools/build-captions.mjs videos/<projekt>` → `compositions/captions.html`.
-4. Je Szene eine Datei `compositions/sN-<name>.html` (SVG + GSAP, IDs mit Szenen-Präfix, `fromTo`).
+3. Je Szene eine Datei `compositions/sN-<name>.html` (SVG + GSAP, IDs mit Szenen-Präfix, `fromTo`),
+   zunächst auf die geplanten Zeiten aus `script.json` getaktet.
+4. Voiceover + Zeit-Warp: `python3 -I tools/voiceover.py videos/<projekt>`, dann
+   `node tools/build-captions.mjs videos/<projekt>`. Text geändert? Einfach beide erneut ausführen
+   (Originalzeiten bleiben in `t0` / `data-orig-start` erhalten).
 5. `npx hyperframes check --json` → Fehler beheben; `npx hyperframes snapshot --review` → Sheets ansehen
    (Überlappungen, Lesbarkeit am Handy, Text im Band).
 6. Rendern: `npx hyperframes render -q delivery -o renders/<projekt>.mp4`. Renders nicht committen.

@@ -93,4 +93,15 @@
       window.__timelines["s3"] = tl;
     })();
   </script>
+  <script>
+    /* WARP START */
+    (function () {
+      const tl = window.__timelines["s3"].__src || window.__timelines["s3"];
+      const w = [[0.0, 0.0], [1.1, 1.045], [2.5, 2.523], [4.4, 4.22], [6.5, 6.087]];
+      const o = gsap.timeline({ paused: true }); o.__src = tl;
+      for (let i = 0; i < w.length - 1; i++) o.fromTo(tl, { time: w[i][0] }, { time: w[i + 1][0], duration: Math.max(0.001, w[i + 1][1] - w[i][1]), ease: "none", immediateRender: false }, w[i][1]);
+      window.__timelines["s3"] = o;
+    })();
+    /* WARP END */
+  </script>
 </template>

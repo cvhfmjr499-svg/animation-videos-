@@ -107,4 +107,15 @@
       window.__timelines["s5"] = tl;
     })();
   </script>
+  <script>
+    /* WARP START */
+    (function () {
+      const tl = window.__timelines["s5"].__src || window.__timelines["s5"];
+      const w = [[0.0, 0.0], [1.4, 1.568], [2.4, 2.204], [3.6, 3.743], [5.0, 5.004], [6.0, 6.084], [7.4, 8.133], [7.4, 8.133]];
+      const o = gsap.timeline({ paused: true }); o.__src = tl;
+      for (let i = 0; i < w.length - 1; i++) o.fromTo(tl, { time: w[i][0] }, { time: w[i + 1][0], duration: Math.max(0.001, w[i + 1][1] - w[i][1]), ease: "none", immediateRender: false }, w[i][1]);
+      window.__timelines["s5"] = o;
+    })();
+    /* WARP END */
+  </script>
 </template>

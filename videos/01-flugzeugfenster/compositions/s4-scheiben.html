@@ -83,4 +83,15 @@
       window.__timelines["s4"] = tl;
     })();
   </script>
+  <script>
+    /* WARP START */
+    (function () {
+      const tl = window.__timelines["s4"].__src || window.__timelines["s4"];
+      const w = [[0.0, 0.0], [1.7, 1.55], [2.8, 2.3], [4.5, 3.849], [5.5, 4.997], [7.0, 6.202], [8.0, 7.456], [9.7, 9.21]];
+      const o = gsap.timeline({ paused: true }); o.__src = tl;
+      for (let i = 0; i < w.length - 1; i++) o.fromTo(tl, { time: w[i][0] }, { time: w[i + 1][0], duration: Math.max(0.001, w[i + 1][1] - w[i][1]), ease: "none", immediateRender: false }, w[i][1]);
+      window.__timelines["s4"] = o;
+    })();
+    /* WARP END */
+  </script>
 </template>
