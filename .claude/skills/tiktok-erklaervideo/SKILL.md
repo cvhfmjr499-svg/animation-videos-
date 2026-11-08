@@ -103,3 +103,14 @@ Ziel ist der Referenz-Look, KEIN Neon. Bewährt in `videos/03-kontaktlos-studio/
 - Innenleben zeigen = mattiertes, helles, halbtransparentes Gehäuse (wie das „Housing“ der Referenz).
 - Effekte fein: Feldlinien 1–2 px türkis, wenige Ringe. Kamera ruhig, harte Schnitte zwischen klaren Einstellungen.
 - Hochformat: horizontal sieht man nur ~0,3 × Abstand (fov 30) → Kamera weit genug weg.
+
+## 7. Fotoreal (bester Stand: `videos/04-kontaktlos-real/`)
+
+- Licht + Hintergrund aus einem echten HDRI (Poly Haven, CC0, z. B. `comfy_cafe`), geladen mit
+  `RGBELoader.legacy.js`; `scene.background = hdr`, `backgroundBlurriness ≈ 0.1` (wirkt wie Tiefenunschärfe),
+  `backgroundIntensity ≈ 0.6`. Hintergrund-Ausschnitt über `scene.rotation.y` + Kamera mit derselben Rotation wählen.
+- Oberflächen mit echten PBR-Texturen (Diffuse/Rough/nor_gl, 2K) statt Flächenfarben.
+- Fotogescannte Requisite von Poly Haven (glTF 1K) mit `GLTFLoader.legacy.js`, Maßstab ×10 (1 Einheit = 10 cm).
+  Nur wenige, weit genug weg – nichts darf das Hauptobjekt verdecken.
+- Laden asynchron, aber `window.__hf.buildReady["<id>"] = Promise.all(...).then(() => renderer.compileAsync(...))`.
+- Assets per `curl` laden (Python-urllib bekommt 403). Credits in `CREDITS.md`.

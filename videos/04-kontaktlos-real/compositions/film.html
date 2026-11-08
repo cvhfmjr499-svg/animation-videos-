@@ -1,0 +1,207 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #000; }
+    #film-cv { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  </style>
+  <div id="root" data-composition-id="film" data-width="1080" data-height="1920">
+    <canvas id="film-cv" width="1080" height="1920"></canvas>
+  </div>
+  <script>
+    (function () {
+      const T = THREE;
+      const k = KIT.stage(document.getElementById("film-cv"), { fov: 30 });
+      const { scene, camera, renderer } = k;
+      renderer.shadowMap.type = T.PCFShadowMap;
+      scene.environment = KIT.studioEnv(renderer);
+      scene.background = new T.Color(0x2a2522);
+      KIT.post(k, { strength: 0.15, threshold: 2.2, vignette: 0.42, grain: 0.01, exposure: 1.0 });
+      k.preRender = KIT.mirrorFloor(k, 0, { strength: 0.16, fade: 3.2 });
+      const ROT = window.__ROT != null ? window.__ROT : 1.57; scene.rotation.y = ROT; const RQ = new T.Matrix4().makeRotationY(ROT); // Szene drehen, Hintergrund bleibt
+      const ready = [];
+      const ease = (x) => x <= 0 ? 0 : x >= 1 ? 1 : (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+      const v = new T.Vector3(), v2 = new T.Vector3(), mtx = new T.Matrix4();
+
+      /* ---------- Raum: Walnuss-Theke, Café-HDRI, fotogescannte Requisite ---------- */
+      const tl0 = new T.TextureLoader();
+      const loadTex = (u, srgb) => new Promise((res) => tl0.load(u, (t) => { if (srgb) t.colorSpace = T.SRGBColorSpace; t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(2.2, 2.2); t.anisotropy = 8; res(t); }));
+      const counterMat = new T.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.6, clearcoat: 0.55, clearcoatRoughness: 0.25, envMapIntensity: 0.8 });
+      const counter = new T.Mesh(new T.PlaneGeometry(14, 14), counterMat); counter.rotation.x = -Math.PI / 2; counter.receiveShadow = true; scene.add(counter);
+      ready.push(Promise.all([loadTex("assets/tex/walnut_Diffuse.jpg", true), loadTex("assets/tex/walnut_Rough.jpg"), loadTex("assets/tex/walnut_nor_gl.jpg")]).then(([d, r, n]) => { counterMat.map = d; counterMat.roughnessMap = r; counterMat.normalMap = n; counterMat.normalScale.set(0.6, 0.6); counterMat.needsUpdate = true; }));
+      ready.push(new Promise((res) => new T.RGBELoader().load("assets/hdri/comfy_cafe_2k.hdr", (hdr) => {
+        hdr.mapping = T.EquirectangularReflectionMapping;
+        const pm = new T.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(hdr).texture; pm.dispose();
+        scene.background = hdr; scene.backgroundBlurriness = 0.1; scene.backgroundIntensity = 0.6;
+        res();
+      })));
+      const gl = new T.GLTFLoader();
+      const loadModel = (name) => new Promise((res) => gl.load(`assets/models/${name}/${name}.gltf`, (g) => { g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; const m = o.material; for (const key of ["map", "emissiveMap"]) if (m[key]) m[key].colorSpace = T.SRGBColorSpace; m.envMapIntensity = 0.9; } }); res(g.scene); }));
+      ready.push(loadModel("croissant").then((m) => { m.scale.setScalar(10); m.position.set(-2.3, 0, 0.6); m.rotation.y = 1.1; scene.add(m); }));
+      scene.add(new T.HemisphereLight(0xfff1e2, 0x2a2018, 0.15));
+      const key = new T.DirectionalLight(0xfff0dd, 2.0); key.position.set(-2.4, 4.4, 2.6); key.castShadow = true;
+      key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 8; key.shadow.bias = -0.0003; key.shadow.normalBias = 0.01;
+      Object.assign(key.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 14 }); scene.add(key);
+
+      /* ---------- Texturen ---------- */
+      const cardTex = KIT.canvasTex(1712, 1080, (g, w, h) => {
+        const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "#5a5e67"); gr.addColorStop(0.55, "#3a3d44"); gr.addColorStop(1, "#4b4e57"); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+        const r = KIT.rng(3); for (let y = 0; y < h; y += 2) { g.fillStyle = `rgba(255,255,255,${(r() * 0.035).toFixed(3)})`; g.fillRect(0, y, w, 1); }
+        g.strokeStyle = "rgba(225,228,235,0.55)"; g.lineCap = "round"; g.lineWidth = 13;
+        for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(1400, 320, 30 + i * 30, -0.62, 0.62); g.stroke(); }
+        const hg = g.createLinearGradient(1350, 840, 1560, 960); ["#9fdcff", "#c7b3ff", "#ffc1e4", "#fff0b0"].forEach((c, i) => hg.addColorStop(i / 3, c));
+        g.globalAlpha = 0.28; g.fillStyle = hg; g.beginPath(); g.roundRect(1360, 830, 200, 130, 20); g.fill(); g.globalAlpha = 1;
+      });
+      cardTex.repeat.set(1 / 0.856, 1 / 0.54); cardTex.offset.set(0.5, 0.5);
+      const chipTex = KIT.canvasTex(330, 255, (g, w, h) => {
+        const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "#e9cf8c"); gr.addColorStop(0.5, "#bf9644"); gr.addColorStop(1, "#e3c47c"); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+        g.strokeStyle = "rgba(70,48,14,0.7)"; g.lineWidth = 4; g.strokeRect(w * 0.36, h * 0.3, w * 0.28, h * 0.4);
+        for (const y of [0.3, 0.5, 0.7]) { g.beginPath(); g.moveTo(0, h * y); g.lineTo(w * 0.36, h * y); g.moveTo(w * 0.64, h * y); g.lineTo(w, h * y); g.stroke(); }
+        g.beginPath(); g.moveTo(w * 0.5, 0); g.lineTo(w * 0.5, h * 0.3); g.moveTo(w * 0.5, h * 0.7); g.lineTo(w * 0.5, h); g.stroke();
+      });
+      chipTex.repeat.set(1 / 0.11, 1 / 0.085); chipTex.offset.set(0.5, 0.5);
+      const dashTex = KIT.canvasTex(512, 4, (g, w, h) => { g.fillStyle = "#000"; g.fillRect(0, 0, w, h); const gr = g.createLinearGradient(0, 0, w * 0.4, 0); gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(0.85, "rgba(255,255,255,1)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, w * 0.4, h); });
+      dashTex.wrapS = T.RepeatWrapping; dashTex.colorSpace = T.NoColorSpace;
+      const scrIdle = KIT.canvasTex(600, 500, (g, w, h) => { g.fillStyle = "#0b0d10"; g.fillRect(0, 0, w, h); const rg = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, 220); rg.addColorStop(0, "rgba(255,255,255,0.06)"); rg.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = rg; g.fillRect(0, 0, w, h); g.strokeStyle = "#e8ecf2"; g.lineCap = "round"; g.lineWidth = 14; for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(w / 2 - 60, h / 2, 26 + i * 28, -0.62, 0.62); g.stroke(); } });
+      const scrOk = KIT.canvasTex(600, 500, (g, w, h) => { g.fillStyle = "#0b0d10"; g.fillRect(0, 0, w, h); g.fillStyle = "#30c46c"; g.beginPath(); g.arc(w / 2, h / 2, 105, 0, 6.283); g.fill(); g.strokeStyle = "#ffffff"; g.lineWidth = 20; g.lineCap = "round"; g.lineJoin = "round"; g.beginPath(); g.moveTo(w / 2 - 46, h / 2 + 2); g.lineTo(w / 2 - 10, h / 2 + 38); g.lineTo(w / 2 + 52, h / 2 - 38); g.stroke(); });
+
+      /* ---------- Terminal ---------- */
+      const term = new T.Group(); scene.add(term);
+      const satin = new T.MeshPhysicalMaterial({ color: 0x1c1d21, roughness: 0.55, clearcoat: 0.3, clearcoatRoughness: 0.45, envMapIntensity: 0.9, transparent: true });
+      const body = new T.Mesh(KIT.roundBox(0.78, 1.5, 0.17, 0.12, 0.035), satin); body.castShadow = true; body.receiveShadow = true; term.add(body);
+      const seam = new T.Mesh(KIT.roundBox(0.79, 1.51, 0.006, 0.122, 0.002), new T.MeshStandardMaterial({ color: 0x0c0c0e, roughness: 0.8 })); seam.position.z = -0.02; term.add(seam);
+      const glass = new T.Mesh(KIT.roundBox(0.66, 0.56, 0.008, 0.04, 0.003), new T.MeshPhysicalMaterial({ color: 0x050506, roughness: 0.06, clearcoat: 1, envMapIntensity: 1.4 })); glass.position.set(0, 0.36, 0.087); term.add(glass);
+      const scrMat = new T.MeshBasicMaterial({ map: scrIdle, toneMapped: false }); scrMat.color.setScalar(0.0);
+      const scr = new T.Mesh(new T.PlaneGeometry(0.58, 0.48), scrMat); scr.position.set(0, 0.36, 0.0915); term.add(scr);
+      const leds = []; for (let i = 0; i < 4; i++) { const m = new T.Mesh(KIT.roundBox(0.09, 0.016, 0.006, 0.008, 0.002), new T.MeshBasicMaterial({ color: 0x232428, toneMapped: false })); m.position.set(-0.15 + i * 0.1, 0.685, 0.086); term.add(m); leds.push(m); }
+      const keyMat = new T.MeshPhysicalMaterial({ color: 0x2b2c31, roughness: 0.62, clearcoat: 0.15, envMapIntensity: 0.8 });
+      const keyG = KIT.roundBox(0.17, 0.09, 0.026, 0.022, 0.008);
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) { const m = new T.Mesh(keyG, keyMat); m.position.set(-0.22 + c * 0.22, -0.05 - r * 0.115, 0.09); m.castShadow = true; term.add(m); if (r === 1 && c === 1) { const d = new T.Mesh(new T.SphereGeometry(0.006, 12, 8), keyMat); d.position.set(0, -0.025, 0.014); m.add(d); } }
+      [0x8a2a2e, 0x9a8130, 0x2c7a45].forEach((c, i) => { const m = new T.Mesh(keyG, new T.MeshPhysicalMaterial({ color: c, roughness: 0.55, clearcoat: 0.2 })); m.position.set(-0.22 + i * 0.22, -0.53, 0.09); m.castShadow = true; term.add(m); });
+      const slot = new T.Mesh(new T.BoxGeometry(0.6, 0.012, 0.03), new T.MeshStandardMaterial({ color: 0x050505 })); slot.position.set(0, -0.735, 0.03); term.add(slot);
+      const board = new T.Group(); board.visible = false; term.add(board);
+      ready.push(loadModel("circuit_board").then((m) => { const bx = new T.Box3().setFromObject(m), sz = bx.getSize(new T.Vector3()), c = bx.getCenter(new T.Vector3()); m.position.sub(c); const g = new T.Group(); g.add(m); const sc = Math.min(0.66 / sz.x, 1.36 / Math.max(sz.z, sz.y)); g.scale.setScalar(sc); if (sz.y < sz.z) g.rotation.x = Math.PI / 2; board.add(g); }));
+      const bodyMats = [satin];
+      const TILT = 0.34; term.rotation.x = -Math.PI / 2 + TILT; term.updateMatrixWorld(true);
+      const bb = new T.Box3().setFromObject(term); term.position.set(0, -bb.min.y + 0.001, -0.05); term.updateMatrixWorld(true);
+      const S = new T.Vector3(0, 0.36, 0.095).applyMatrix4((term.updateMatrix(), term.matrix));
+      const N = new T.Vector3(0, 0, 1).transformDirection(term.matrix).normalize();
+      const qN = new T.Quaternion().setFromUnitVectors(new T.Vector3(0, 0, 1), N);
+
+      /* ---------- Karte (Metall) ---------- */
+      const card = new T.Group(); scene.add(card);
+      const faceMat = new T.MeshPhysicalMaterial({ map: cardTex, roughness: 0.4, metalness: 0.55, clearcoat: 0.35, clearcoatRoughness: 0.35, envMapIntensity: 1.1, transparent: true });
+      const edgeMat = new T.MeshStandardMaterial({ color: 0x8d9099, roughness: 0.3, metalness: 1, transparent: true });
+      const cardMesh = new T.Mesh(KIT.roundBox(0.856, 0.54, 0.0076, 0.032, 0.0016), [faceMat, edgeMat]); cardMesh.castShadow = true; card.add(cardMesh);
+      const frostMat = new T.MeshPhysicalMaterial({ color: 0xf4f5f7, roughness: 0.55, transparent: true, opacity: 0, depthWrite: false, clearcoat: 0.6, envMapIntensity: 1.2 });
+      const frost = new T.Mesh(KIT.roundBox(0.862, 0.546, 0.0082, 0.033, 0.0018), frostMat); card.add(frost);
+      const CHIP = new T.Vector3(-0.27, 0.04, 0);
+      const chipMat = new T.MeshStandardMaterial({ map: chipTex, metalness: 1, roughness: 0.32, envMapIntensity: 1.2, transparent: true });
+      const chip = new T.Mesh(KIT.roundBox(0.11, 0.085, 0.003, 0.012, 0.0008), chipMat); chip.position.set(CHIP.x, CHIP.y, 0.0042); card.add(chip);
+      const die = new T.Mesh(new T.BoxGeometry(0.045, 0.036, 0.002), new T.MeshStandardMaterial({ color: 0x15161a, roughness: 0.3, metalness: 0.4 })); die.position.copy(CHIP); card.add(die);
+      // Antennenspule (Kupfer)
+      const pts = []; const TURNS = 4, PER = 90;
+      for (let i = 0; i <= TURNS * PER; i++) {
+        const turn = i / PER, a = (i % PER) / PER, inset = 0.03 + turn * 0.011, hx = 0.428 - inset, hy = 0.27 - inset, rr = 0.03, sx = hx - rr, sy = hy - rr, arc = Math.PI * rr / 2;
+        const path = [[2 * sx, (u) => [-sx + u, -hy]], [arc, (u) => { const th = -Math.PI / 2 + u / rr; return [sx + Math.cos(th) * rr, -sy + Math.sin(th) * rr]; }], [2 * sy, (u) => [hx, -sy + u]], [arc, (u) => { const th = u / rr; return [sx + Math.cos(th) * rr, sy + Math.sin(th) * rr]; }], [2 * sx, (u) => [sx - u, hy]], [arc, (u) => { const th = Math.PI / 2 + u / rr; return [-sx + Math.cos(th) * rr, sy + Math.sin(th) * rr]; }], [2 * sy, (u) => [-hx, sy - u]], [arc, (u) => { const th = Math.PI + u / rr; return [-sx + Math.cos(th) * rr, -sy + Math.sin(th) * rr]; }]];
+        let d = a * path.reduce((s, p) => s + p[0], 0), xy = null;
+        for (const [len, f] of path) { if (d <= len) { xy = f(d); break; } d -= len; }
+        if (!xy) xy = path[0][1](0);
+        pts.push(new T.Vector3(xy[0], xy[1], 0));
+      }
+      const lp = pts[pts.length - 1]; pts.push(new T.Vector3(lp.x + 0.04, lp.y + 0.05, 0), new T.Vector3(CHIP.x - 0.035, CHIP.y - 0.02, 0), new T.Vector3(CHIP.x - 0.022, CHIP.y, 0));
+      const coilCurve = new T.CatmullRomCurve3(pts, false, "catmullrom", 0.1);
+      dashTex.repeat.set(30, 1);
+      const coilMat = new T.MeshStandardMaterial({ color: 0xc27a45, metalness: 1, roughness: 0.32, emissive: 0xff9b4a, emissiveMap: dashTex, emissiveIntensity: 0, transparent: true, opacity: 0 });
+      card.add(new T.Mesh(new T.TubeGeometry(coilCurve, 1600, 0.0022, 6, false), coilMat));
+
+      /* ---------- Feldlinien (fein, türkis) ---------- */
+      const tealC = new T.Color(0x3fe0c8);
+      const fTex = dashTex.clone(); fTex.needsUpdate = true; fTex.repeat.set(5, 1);
+      const fieldMat = new T.MeshBasicMaterial({ color: tealC, transparent: true, opacity: 0, depthWrite: false });
+      const flowMat = new T.MeshBasicMaterial({ color: new T.Color(0x9ffff0), alphaMap: fTex, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending });
+      const axis = N.clone(), base0 = S.clone().addScaledVector(N, -0.03);
+      const u1 = new T.Vector3().crossVectors(axis, new T.Vector3(0, 1, 0)).normalize(), u2 = new T.Vector3().crossVectors(axis, u1).normalize();
+      for (const Lk of [0.5, 0.78, 1.08]) for (let j = 0; j < 6; j++) {
+        const phi = j / 6 * Math.PI * 2 + Lk * 1.7, rad = u1.clone().multiplyScalar(Math.cos(phi)).addScaledVector(u2, Math.sin(phi));
+        const fp = []; for (let s = 0; s <= 80; s++) { const th = 0.1 + (Math.PI - 0.2) * s / 80, r = Lk * Math.sin(th) ** 2; fp.push(base0.clone().addScaledVector(axis, Math.cos(th) * r).addScaledVector(rad, Math.sin(th) * r)); }
+        const g = new T.TubeGeometry(new T.CatmullRomCurve3(fp), 160, 0.0016, 4, false);
+        scene.add(new T.Mesh(g, fieldMat)); scene.add(new T.Mesh(g, flowMat));
+      }
+      /* ---------- Datenpunkte ---------- */
+      const NP = 10;
+      const dots = new T.InstancedMesh(new T.SphereGeometry(0.008, 12, 10), new T.MeshBasicMaterial({ color: new T.Color(0xeafffb).multiplyScalar(1.6), toneMapped: false }), NP * 2); scene.add(dots);
+
+      /* ---------- Zustand ---------- */
+      const st = { tx: 0, spin: -0.35, dock: 0, lift: 0, xray: 0, field: 0, cur: 0, led: 0, ok: 0, scr: 0, fade: 0 };
+      const heroPos = new T.Vector3(0, 0.62, 0.55), endPos = new T.Vector3(0.1, 0.78, 0.6);
+      const hoverPos = S.clone().addScaledVector(N, 0.07);
+      const qHero = new T.Quaternion(), eu = new T.Euler(), chipW = new T.Vector3();
+      const white = new T.Color(0xf2f3f5), faceBase = new T.Color(0xffffff);
+
+      /* ---------- Einstellungen (harte Schnitte) ---------- */
+      const shots0 = [
+        [0.0, (t) => [v.set(0.45, 0.82, 4.3 - t * 0.07).clone(), heroPos.clone().add(v2.set(0, -0.06, 0))]],
+        [4.2, (t) => { const u = t - 4.2; return [new T.Vector3(1.85 - u * 0.04, 1.45, 3.9 - u * 0.05), new T.Vector3(0, 0.36, 0.12)]; }],
+        [9.0, (t) => { const u = t - 9.0; return [hoverPos.clone().addScaledVector(N, 3.5).add(v.set(0.35 + u * 0.02, 0, 0.3)), hoverPos.clone()]; }],
+        [14.0, (t) => { const u = t - 14.0; return [S.clone().addScaledVector(N, 1.7).add(v.set(0.7 - u * 0.03, 0.25, 0.6)), S.clone().add(v2.set(0, 0.06, 0))]; }],
+        [17.2, (t) => { const u = t - 17.2; return [new T.Vector3(-1.4 + u * 0.03, 1.3, 5.3 - u * 0.1), new T.Vector3(0.05, 0.55, 0.3)]; }],
+      ];
+      const camAt = (t) => { let i = 0; while (i + 1 < shots0.length && t >= shots0[i + 1][0]) i++; return shots0[i][1](t); };
+
+      const clk = { t: 0 };
+      const update = () => {
+        const t = clk.t;
+        eu.set(-0.18 + Math.sin(t * 0.6) * 0.03, st.spin, 0.03 * Math.sin(t * 0.45)); qHero.setFromEuler(eu);
+        const dk = ease(st.dock), from = st.lift > 0 ? endPos : heroPos;
+        card.position.lerpVectors(v.copy(from).add(v2.set(0, Math.sin(t * 1.1) * 0.008, 0)), hoverPos, dk);
+        card.quaternion.slerpQuaternions(qHero, qN, dk); card.updateMatrixWorld(true);
+        chipW.copy(CHIP).applyMatrix4(card.matrix);
+        // Röntgen = mattiertes, helles Gehäuse
+        const x = st.xray;
+        faceMat.opacity = 1 - x; faceMat.depthWrite = x < 0.05; frostMat.opacity = 0.32 * x; frost.visible = x > 0.01;
+        satin.opacity = 1 - 0.55 * st.tx; satin.depthWrite = st.tx < 0.05; board.visible = st.tx > 0.02;
+        edgeMat.opacity = 1 - 0.5 * x; chipMat.opacity = 1 - 0.55 * x;
+        coilMat.opacity = Math.min(1, x * 1.4); coilMat.emissiveIntensity = 1.4 * st.cur; dashTex.offset.x = -t * 1.2;
+        fieldMat.opacity = 0.42 * st.field; flowMat.opacity = 0.7 * st.field; fTex.offset.x = -t * 0.45;
+        scrMat.map = st.ok > 0.5 ? scrOk : scrIdle; scrMat.color.setScalar(st.scr * 0.95);
+        leds.forEach((m, i) => { const on = st.ok > 0.5 || st.led > i + 0.5; m.material.color.set(on ? 0x34d17a : 0x232428); if (on) m.material.color.multiplyScalar(1.8); });
+        const ctrl = v2.copy(chipW).lerp(S, 0.5).addScaledVector(N, 0.05);
+        for (let i = 0; i < NP; i++) for (let d = 0; d < 2; d++) {
+          const t0 = 11.8 + i * 0.2 + d * 0.1, u = (t - t0) / 0.5, on = u > 0 && u < 1, a = on ? ease(u) : 0, s = on ? Math.sin(Math.PI * u) : 0;
+          const A = d ? S : chipW, B = d ? chipW : S;
+          const p = new T.Vector3().copy(A).multiplyScalar((1 - a) ** 2).addScaledVector(ctrl, 2 * a * (1 - a)).addScaledVector(B, a * a);
+          mtx.makeScale(s, s, s).setPosition(p); dots.setMatrixAt(i * 2 + d, mtx);
+        }
+        dots.instanceMatrix.needsUpdate = true;
+        const [cp, ct] = camAt(t); camera.position.copy(cp.applyMatrix4(RQ)); camera.lookAt(ct.applyMatrix4(RQ));
+        k.post.seed.value = (Math.floor(t * 30) % 97) * 1.37; k.post.fade.value = 1 - st.fade;
+        k.render();
+      };
+
+      const tl = gsap.timeline({ paused: true });
+      tl.eventCallback("onUpdate", () => { clk.t = tl.time(); update(); }); tl.set({}, {}, 20);
+      tl.fromTo(st, { spin: -0.35 }, { spin: 0.18, duration: 4.2, ease: "power1.inOut" }, 0);
+      tl.fromTo(st, { scr: 0 }, { scr: 1, duration: 0.5, ease: "power2.out" }, 4.4);
+      tl.fromTo(st, { dock: 0 }, { dock: 1, duration: 2.8, ease: "none" }, 4.6);
+      tl.fromTo(st, { field: 0 }, { field: 1, duration: 1.0, ease: "power2.out" }, 6.6);
+      tl.to(st, { led: 1, duration: 0.01 }, 8.0);
+      tl.fromTo(st, { xray: 0 }, { xray: 1, duration: 1.0, ease: "power2.inOut" }, 9.3);
+      tl.fromTo(st, { cur: 0 }, { cur: 1, duration: 0.8, ease: "power2.out" }, 10.6);
+      tl.to(st, { led: 2, duration: 0.01 }, 11.0);
+      tl.to(st, { led: 3, duration: 0.01 }, 12.6);
+      tl.fromTo(st, { tx: 0 }, { tx: 1, duration: 0.8, ease: "power2.inOut" }, 11.6);
+      tl.to(st, { tx: 0, duration: 0.6, ease: "power2.inOut" }, 15.0);
+      tl.to(st, { led: 4, duration: 0.01 }, 14.6);
+      tl.to(st, { ok: 1, duration: 0.01 }, 15.4);
+      tl.to(st, { field: 0, cur: 0, duration: 0.8, ease: "power2.inOut" }, 15.6);
+      tl.to(st, { xray: 0, duration: 0.6, ease: "power2.inOut" }, 16.4);
+      tl.set(st, { lift: 1 }, 17.2);
+      tl.fromTo(st, { dock: 1 }, { dock: 0, duration: 1.8, ease: "none", immediateRender: false }, 17.2);
+      tl.fromTo(st, { spin: 0.18 }, { spin: -0.25, duration: 2.8, ease: "power1.inOut", immediateRender: false }, 17.2);
+      tl.fromTo(st, { fade: 0 }, { fade: 1, duration: 0.8, ease: "power2.in" }, 19.2);
+      window.__hf = window.__hf || {}; window.__hf.buildReady = window.__hf.buildReady || {};
+      window.__hf.buildReady["film"] = Promise.all(ready).then(() => renderer.compileAsync(scene, camera)).then(() => { update(); });
+      update();
+      window.__timelines["film"] = tl;
+    })();
+  </script>
+</template>
