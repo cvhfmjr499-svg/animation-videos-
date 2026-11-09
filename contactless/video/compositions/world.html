@@ -80,7 +80,7 @@
       id="world-root"
       data-composition-id="world"
       data-start="0"
-      data-duration="35"
+      data-duration="30"
       data-width="1080"
       data-height="1920"
     >
@@ -88,36 +88,36 @@
         id="world-canvas"
         class="clip"
         data-start="0"
-        data-duration="35"
+        data-duration="30"
         data-track-index="1"
       ></canvas>
 
       <!-- Beschriftungen: Punkt am Bauteil, dünne weiße Linie, Text in kleinen Großbuchstaben -->
-      <div id="lbl-antenne" class="lbl clip" data-start="10" data-duration="5" data-track-index="2">
+      <div id="lbl-antenne" class="lbl clip" data-start="8" data-duration="4.3" data-track-index="2">
         <div class="lbl-inner">
           <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
           <div class="lbl-text">Antenne</div>
         </div>
       </div>
-      <div id="lbl-chip" class="lbl clip" data-start="15" data-duration="5" data-track-index="2">
+      <div id="lbl-chip" class="lbl clip" data-start="12.3" data-duration="4" data-track-index="2">
         <div class="lbl-inner">
           <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
           <div class="lbl-text">Chip</div>
         </div>
       </div>
-      <div id="lbl-mhz" class="lbl clip" data-start="20" data-duration="5" data-track-index="2">
+      <div id="lbl-mhz" class="lbl clip" data-start="16.3" data-duration="4.7" data-track-index="2">
         <div class="lbl-inner">
           <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
           <div class="lbl-text">13,56 MHz</div>
         </div>
       </div>
-      <div id="lbl-range" class="lbl clip" data-start="25" data-duration="5" data-track-index="2">
+      <div id="lbl-range" class="lbl clip" data-start="21" data-duration="4.2" data-track-index="2">
         <div class="lbl-inner">
           <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
           <div class="lbl-text">Max. ca. 4 cm</div>
         </div>
       </div>
-      <div id="lbl-code" class="lbl clip" data-start="30" data-duration="5" data-track-index="2">
+      <div id="lbl-code" class="lbl clip" data-start="25.2" data-duration="4.8" data-track-index="2">
         <div class="lbl-inner">
           <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
           <div class="lbl-text">Einmal-Code</div>
@@ -137,8 +137,24 @@
           { id: "lbl-code", at: 31.4, end: 35.5, attach: [330, 610], side: "left" },
         ];
 
+        // Film: 30 s, 7 Szenen mit eigener Dauer. Die 3D-Szenen sind in einer
+        // "virtuellen" Zeit von 7 x 5 s geschrieben; v2r/r2v rechnen pro Szene um.
+        var DUR = [4.2, 3.8, 4.3, 4.0, 4.7, 4.2, 4.8];
+        var START = [0];
+        for (var i = 0; i < DUR.length; i++) START.push(START[i] + DUR[i]);
+        var TOTAL = START[DUR.length];
+        function r2v(t) {
+          for (var i = 0; i < DUR.length; i++) {
+            if (t < START[i + 1] || i === DUR.length - 1) return 5 * i + ((t - START[i]) * 5) / DUR[i];
+          }
+        }
+        function v2r(v) {
+          var i = Math.max(0, Math.min(DUR.length - 1, Math.floor(v / 5)));
+          return START[i] + ((v - 5 * i) * DUR[i]) / 5;
+        }
+
         var clock = { t: 0 };
-        var world = { clock: clock, render: null, labels: LABELS };
+        var world = { clock: clock, render: null, labels: LABELS, r2v: r2v };
         window.__ccWorld = world;
         window.__hf = window.__hf || {};
         window.__hf.buildReady = window.__hf.buildReady || {};
@@ -148,11 +164,11 @@
 
         var tl = gsap.timeline({ paused: true });
         tl.to(clock, {
-          t: 35,
-          duration: 35,
+          t: TOTAL,
+          duration: TOTAL,
           ease: "none",
           onUpdate: function () {
-            if (world.render) world.render(clock.t);
+            if (world.render) world.render(r2v(clock.t));
           },
         });
 
@@ -174,22 +190,22 @@
           }
           text.style.top = y - 15 + "px";
           var hidden = L.side === "right" ? "inset(0% 100% 0% 0%)" : "inset(0% 0% 0% 100%)";
-          tl.fromTo(inner, { opacity: 1 }, { opacity: 1, duration: 0.01 }, L.at - 0.02);
-          tl.fromTo(dot, { attr: { r: 0 } }, { attr: { r: 7 }, duration: 0.25, ease: "back.out(2)" }, L.at);
+          tl.fromTo(inner, { opacity: 1 }, { opacity: 1, duration: 0.01 }, v2r(L.at) - 0.02);
+          tl.fromTo(dot, { attr: { r: 0 } }, { attr: { r: 7 }, duration: 0.25, ease: "back.out(2)" }, v2r(L.at));
           tl.fromTo(
             line,
             { strokeDasharray: 1, strokeDashoffset: 1 },
             { strokeDashoffset: 0, duration: 0.42, ease: "power2.inOut" },
-            L.at + 0.12,
+            v2r(L.at) + 0.12,
           );
           tl.fromTo(
             text,
             { clipPath: hidden, opacity: 0.0, x: L.side === "right" ? -10 : 10 },
             { clipPath: "inset(0% 0% 0% 0%)", opacity: 1, x: 0, duration: 0.45, ease: "power3.out" },
-            L.at + 0.45,
+            v2r(L.at) + 0.4,
           );
           if (L.end < 35) {
-            tl.to(inner, { opacity: 0, duration: 0.25, ease: "power2.in" }, L.end - 0.25);
+            tl.to(inner, { opacity: 0, duration: 0.25, ease: "power2.in" }, v2r(L.end) - 0.25);
           }
         });
 
@@ -1186,7 +1202,7 @@
       }
       await renderer.compileAsync(scene, camera);
       host.render = render;
-      render(host.clock.t);
+      render(host.r2v(host.clock.t));
       host.ready();
     </script>
   </body>
