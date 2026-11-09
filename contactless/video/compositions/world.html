@@ -988,7 +988,7 @@
             });
           });
           // Karte waagerecht, Vorderseite nach unten, sinkt auf das Terminal zu
-          const h = lerp(15.5, 5.2, prog(lt, 0.5, 3.0));
+          const h = lerp(11.5, 5.2, prog(lt, 0.3, 3.0));
           card.position.set(D.x + 0.4, D.y + h, D.z + 0.2);
           card.rotation.set(Math.PI / 2, 0, deg(8));
           setXray(1);
@@ -1068,7 +1068,7 @@
           host.packetPos = packet.visible ? packet.position.clone() : end.clone();
           drawDisplay(prog(lt, 2.55, 3.3, ease("power2.out")));
           const p = prog(lt, -0.4, 4.6);
-          setCam(V(lerp(-9.0, -17, p), lerp(17.5, 26, p), lerp(25, 62, p)), V(lerp(-0.2, 0.4, p), lerp(11.4, 11.2, p), 0));
+          setCam(V(lerp(-13.5, -17, p), lerp(23, 26, p), lerp(46, 62, p)), V(lerp(-0.6, 0.4, p), lerp(14.6, 11.2, p), 0));
         },
       ];
 
