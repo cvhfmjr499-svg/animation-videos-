@@ -1,0 +1,1193 @@
+<!doctype html>
+<!--
+  world: die gesamte 3D-Welt des Films (7 Szenen à 5 s) in EINER Three.js-Szene.
+  Muster wie die Registry-Bausteine (product-turntable / three-orbiting-cards):
+  eine lineare GSAP-Uhr ruft render(t) auf; jedes Bild ist eine reine Funktion von t.
+  Szenenwechsel: beide Szenen werden in Render-Targets gezeichnet und im Shader
+  überblendet (Überblendung oder Zoom-Durchflug). Beschriftungen sind HTML/SVG
+  über dem Canvas; ihre Linienenden folgen der 3D-Projektion des Bauteils.
+-->
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>World</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #111111;
+      }
+      #world-root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #111111;
+      }
+      #world-canvas {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        display: block;
+      }
+      .lbl {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        pointer-events: none;
+      }
+      .lbl-inner {
+        position: absolute;
+        inset: 0;
+      }
+      .lbl svg {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: visible;
+      }
+      .lbl line {
+        stroke: #ffffff;
+        stroke-width: 2;
+        stroke-linecap: butt;
+      }
+      .lbl circle {
+        fill: #ffffff;
+      }
+      .lbl-text {
+        position: absolute;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 30px;
+        line-height: 1;
+        letter-spacing: 0.18em;
+        color: #ffffff;
+        white-space: nowrap;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="world-root"
+      data-composition-id="world"
+      data-start="0"
+      data-duration="35"
+      data-width="1080"
+      data-height="1920"
+    >
+      <canvas
+        id="world-canvas"
+        class="clip"
+        data-start="0"
+        data-duration="35"
+        data-track-index="1"
+      ></canvas>
+
+      <!-- Beschriftungen: Punkt am Bauteil, dünne weiße Linie, Text in kleinen Großbuchstaben -->
+      <div id="lbl-antenne" class="lbl clip" data-start="10" data-duration="5" data-track-index="2">
+        <div class="lbl-inner">
+          <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
+          <div class="lbl-text">Antenne</div>
+        </div>
+      </div>
+      <div id="lbl-chip" class="lbl clip" data-start="15" data-duration="5" data-track-index="2">
+        <div class="lbl-inner">
+          <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
+          <div class="lbl-text">Chip</div>
+        </div>
+      </div>
+      <div id="lbl-mhz" class="lbl clip" data-start="20" data-duration="5" data-track-index="2">
+        <div class="lbl-inner">
+          <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
+          <div class="lbl-text">13,56 MHz</div>
+        </div>
+      </div>
+      <div id="lbl-range" class="lbl clip" data-start="25" data-duration="5" data-track-index="2">
+        <div class="lbl-inner">
+          <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
+          <div class="lbl-text">Max. ca. 4 cm</div>
+        </div>
+      </div>
+      <div id="lbl-code" class="lbl clip" data-start="30" data-duration="5" data-track-index="2">
+        <div class="lbl-inner">
+          <svg viewBox="0 0 1080 1920"><line pathLength="1" x1="0" y1="0" x2="0" y2="0" /><circle r="0" cx="0" cy="0" /></svg>
+          <div class="lbl-text">Einmal-Code</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // Label-Layout: wann es startet und wo der Text steht (Bildschirm-Pixel).
+        // side "right": Text rechts vom Linienende; "left": Text links davon.
+        var LABELS = [
+          { id: "lbl-antenne", at: 12.0, end: 14.55, attach: [700, 1330], side: "right" },
+          { id: "lbl-chip", at: 17.7, end: 19.55, attach: [330, 1330], side: "left" },
+          { id: "lbl-mhz", at: 21.6, end: 24.55, attach: [770, 540], side: "right" },
+          { id: "lbl-range", at: 26.9, end: 29.55, attach: [600, 640], side: "left" },
+          { id: "lbl-code", at: 31.4, end: 35.5, attach: [330, 610], side: "left" },
+        ];
+
+        var clock = { t: 0 };
+        var world = { clock: clock, render: null, labels: LABELS };
+        window.__ccWorld = world;
+        window.__hf = window.__hf || {};
+        window.__hf.buildReady = window.__hf.buildReady || {};
+        window.__hf.buildReady["world"] = new Promise(function (resolve) {
+          world.ready = resolve;
+        });
+
+        var tl = gsap.timeline({ paused: true });
+        tl.to(clock, {
+          t: 35,
+          duration: 35,
+          ease: "none",
+          onUpdate: function () {
+            if (world.render) world.render(clock.t);
+          },
+        });
+
+        // Beschriftungen bauen sich auf: Punkt -> Linie -> Text (Wisch von links)
+        LABELS.forEach(function (L) {
+          var root = document.getElementById(L.id);
+          var inner = root.querySelector(".lbl-inner");
+          var line = root.querySelector("line");
+          var dot = root.querySelector("circle");
+          var text = root.querySelector(".lbl-text");
+          var x = L.attach[0];
+          var y = L.attach[1];
+          line.setAttribute("x2", x);
+          line.setAttribute("y2", y);
+          if (L.side === "right") {
+            text.style.left = x + 14 + "px";
+          } else {
+            text.style.right = 1080 - x + 14 + "px";
+          }
+          text.style.top = y - 15 + "px";
+          var hidden = L.side === "right" ? "inset(0% 100% 0% 0%)" : "inset(0% 0% 0% 100%)";
+          tl.fromTo(inner, { opacity: 1 }, { opacity: 1, duration: 0.01 }, L.at - 0.02);
+          tl.fromTo(dot, { attr: { r: 0 } }, { attr: { r: 7 }, duration: 0.25, ease: "back.out(2)" }, L.at);
+          tl.fromTo(
+            line,
+            { strokeDasharray: 1, strokeDashoffset: 1 },
+            { strokeDashoffset: 0, duration: 0.42, ease: "power2.inOut" },
+            L.at + 0.12,
+          );
+          tl.fromTo(
+            text,
+            { clipPath: hidden, opacity: 0.0, x: L.side === "right" ? -10 : 10 },
+            { clipPath: "inset(0% 0% 0% 0%)", opacity: 1, x: 0, duration: 0.45, ease: "power3.out" },
+            L.at + 0.45,
+          );
+          if (L.end < 35) {
+            tl.to(inner, { opacity: 0, duration: 0.25, ease: "power2.in" }, L.end - 0.25);
+          }
+        });
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines["world"] = tl;
+      })();
+    </script>
+
+    <script type="module">
+      import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.184.0/+esm";
+      import { RoomEnvironment } from "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/environments/RoomEnvironment.js/+esm";
+      import { RoundedBoxGeometry } from "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/geometries/RoundedBoxGeometry.js/+esm";
+      import { Reflector } from "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/objects/Reflector.js/+esm";
+
+      const host = window.__ccWorld;
+      const W = 1080;
+      const H = 1920;
+
+      // ---------- Hilfen ----------
+      const ease = (n) => gsap.parseEase(n);
+      const eIO = ease("power2.inOut");
+      const eO = ease("power3.out");
+      const eSine = ease("sine.inOut");
+      const clamp01 = (x) => Math.min(1, Math.max(0, x));
+      const prog = (t, a, b, e = eIO) => e(clamp01((t - a) / (b - a)));
+      const lerp = (a, b, p) => a + (b - a) * p;
+      const V = (x, y, z) => new THREE.Vector3(x, y, z);
+      const deg = THREE.MathUtils.degToRad;
+      function mulberry32(a) {
+        return function () {
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function canvasTex(w, h, draw, srgb = true) {
+        const c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        draw(c.getContext("2d"), w, h);
+        const tex = new THREE.CanvasTexture(c);
+        if (srgb) tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 8;
+        return tex;
+      }
+
+      // ---------- Renderer ----------
+      const canvas = document.getElementById("world-canvas");
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(W, H, false);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+
+      const rtOpts = { type: THREE.HalfFloatType, samples: 4 };
+      const rtA = new THREE.WebGLRenderTarget(W, H, rtOpts);
+      const rtB = new THREE.WebGLRenderTarget(W, H, rtOpts);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x111111);
+      scene.fog = new THREE.Fog(0x111111, 70, 190);
+
+      // Studio-Umgebung: weiche Softbox von oben + schmaler Kantenlicht-Streifen hinten
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const studio = new THREE.Scene();
+      const room = new RoomEnvironment();
+      room.traverse((o) => {
+        if (o.isLight) o.intensity *= 0.15;
+        if (o.material && o.material.emissiveIntensity) o.material.emissiveIntensity *= 0.12;
+      });
+      studio.add(room);
+      const strip = (w, h, x, y, z, k) => {
+        const m = new THREE.Mesh(
+          new THREE.PlaneGeometry(w, h),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(k, k, k), side: THREE.DoubleSide }),
+        );
+        m.position.set(x, y, z);
+        m.lookAt(0, 0, 0);
+        studio.add(m);
+      };
+      strip(6, 6, 0, 8, 1.5, 6); // Softbox oben
+      strip(1.0, 7, -6, 2, -5, 5); // Kantenlicht links hinten
+      strip(1.0, 7, 6.5, 2.5, -4, 3); // Kantenlicht rechts hinten
+      scene.environment = pmrem.fromScene(studio, 0.03).texture;
+      scene.environmentIntensity = 0.55;
+
+      const key = new THREE.DirectionalLight(0xfff6ea, 2.3);
+      key.position.set(4, 40, 14);
+      scene.add(key);
+      const rim = new THREE.DirectionalLight(0xdfe8ff, 2.6);
+      rim.position.set(-18, 14, -30);
+      scene.add(rim);
+      const rim2 = new THREE.DirectionalLight(0xdfe8ff, 1.2);
+      rim2.position.set(20, 10, -25);
+      scene.add(rim2);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 0.18));
+
+      // ---------- Boden: glänzend, dunkel, schwache Spiegelung ----------
+      const mirror = new Reflector(new THREE.PlaneGeometry(600, 600), {
+        textureWidth: W / 2,
+        textureHeight: H / 2,
+        color: 0x8a8a8a,
+      });
+      mirror.rotation.x = -Math.PI / 2;
+      scene.add(mirror);
+      const floorTop = new THREE.Mesh(
+        new THREE.PlaneGeometry(600, 600),
+        new THREE.MeshStandardMaterial({ color: 0x0c0c0d, roughness: 0.32, metalness: 0.0, transparent: true, opacity: 0.84 }),
+      );
+      floorTop.rotation.x = -Math.PI / 2;
+      floorTop.position.y = 0.02;
+      scene.add(floorTop);
+
+      const shadowTex = canvasTex(256, 256, (g) => {
+        const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+        gr.addColorStop(0, "rgba(0,0,0,0.75)");
+        gr.addColorStop(1, "rgba(0,0,0,0)");
+        g.fillStyle = gr;
+        g.fillRect(0, 0, 256, 256);
+      });
+      function contactShadow(w, d) {
+        const m = new THREE.Mesh(
+          new THREE.PlaneGeometry(w, d),
+          new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }),
+        );
+        m.rotation.x = -Math.PI / 2;
+        m.position.y = 0.04;
+        m.renderOrder = 1;
+        return m;
+      }
+
+      // ---------- Materialien ----------
+      const rnd = mulberry32(7);
+      const brushedTex = canvasTex(
+        512,
+        512,
+        (g, w, h) => {
+          g.fillStyle = "rgb(110,110,110)";
+          g.fillRect(0, 0, w, h);
+          for (let i = 0; i < 2600; i++) {
+            const y = rnd() * h;
+            const v = 70 + rnd() * 110;
+            g.strokeStyle = `rgba(${v},${v},${v},${0.25 + rnd() * 0.35})`;
+            g.lineWidth = 0.5 + rnd() * 1.2;
+            g.beginPath();
+            const x0 = rnd() * w;
+            g.moveTo(x0 - 200, y);
+            g.lineTo(x0 + 200 + rnd() * 300, y + (rnd() - 0.5) * 0.6);
+            g.stroke();
+          }
+        },
+        false,
+      );
+      brushedTex.wrapS = brushedTex.wrapT = THREE.RepeatWrapping;
+      const brushed = new THREE.MeshPhysicalMaterial({
+        color: 0xb9bdc3,
+        metalness: 1,
+        roughness: 0.5,
+        roughnessMap: brushedTex,
+        anisotropy: 0.8,
+      });
+      const brushedKey = new THREE.MeshPhysicalMaterial({ color: 0x7b7f85, metalness: 1, roughness: 0.62, roughnessMap: brushedTex, anisotropy: 0.6 });
+      const plasticDark = new THREE.MeshPhysicalMaterial({ color: 0x232428, roughness: 0.62, metalness: 0, clearcoat: 0.15, clearcoatRoughness: 0.5 });
+      const plasticKey = new THREE.MeshPhysicalMaterial({ color: 0x3a3c41, roughness: 0.55, metalness: 0 });
+      const skin = new THREE.MeshPhysicalMaterial({ color: 0xa79f96, roughness: 0.72, metalness: 0, sheen: 0.4, sheenRoughness: 0.6, sheenColor: 0xffffff });
+      const NEON = new THREE.Color(0x39ff7a);
+
+      const glowTex = canvasTex(128, 128, (g) => {
+        const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+        gr.addColorStop(0, "rgba(255,255,255,1)");
+        gr.addColorStop(0.25, "rgba(255,255,255,0.55)");
+        gr.addColorStop(1, "rgba(255,255,255,0)");
+        g.fillStyle = gr;
+        g.fillRect(0, 0, 128, 128);
+      });
+      function glowSprite(color, size) {
+        const s = new THREE.Sprite(
+          new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+        );
+        s.scale.set(size, size, 1);
+        s.renderOrder = 10;
+        return s;
+      }
+
+      // Polylinie mit Bogenlängen-Parametrisierung (für Röhren und Lichtpunkte)
+      class PolyCurve extends THREE.Curve {
+        constructor(pts) {
+          super();
+          this.pts = pts;
+          this.cum = [0];
+          for (let i = 1; i < pts.length; i++) this.cum.push(this.cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+          this.total = this.cum[this.cum.length - 1];
+        }
+        getPoint(u, target = new THREE.Vector3()) {
+          const L = clamp01(u) * this.total;
+          let lo = 0;
+          let hi = this.cum.length - 1;
+          while (hi - lo > 1) {
+            const mid = (lo + hi) >> 1;
+            if (this.cum[mid] < L) lo = mid;
+            else hi = mid;
+          }
+          const seg = this.cum[hi] - this.cum[lo] || 1;
+          return target.copy(this.pts[lo]).lerp(this.pts[hi], (L - this.cum[lo]) / seg);
+        }
+        getPointAt(u, t) {
+          return this.getPoint(u, t);
+        }
+        getUtoTmapping(u) {
+          return u;
+        }
+        getTangentAt(u, t) {
+          return this.getTangent(u, t);
+        }
+      }
+
+      // ================= KARTE (ISO ID-1: 8,56 × 5,398 × 0,076 cm) =================
+      const CW = 8.56, CH = 5.398, CT = 0.076, CR = 0.318;
+      function roundedRect(w, h, r) {
+        const s = new THREE.Shape();
+        const x = -w / 2, y = -h / 2;
+        s.moveTo(x + r, y);
+        s.lineTo(x + w - r, y);
+        s.quadraticCurveTo(x + w, y, x + w, y + r);
+        s.lineTo(x + w, y + h - r);
+        s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        s.lineTo(x + r, y + h);
+        s.quadraticCurveTo(x, y + h, x, y + h - r);
+        s.lineTo(x, y + r);
+        s.quadraticCurveTo(x, y, x + r, y);
+        return s;
+      }
+      const cardShape = roundedRect(CW, CH, CR);
+      const card = new THREE.Group();
+      scene.add(card);
+
+      const bodyGeo = new THREE.ExtrudeGeometry(cardShape, { depth: CT, bevelEnabled: false, curveSegments: 10 });
+      bodyGeo.translate(0, 0, -CT / 2);
+      const bodyMat = new THREE.MeshPhysicalMaterial({ color: 0x55595f, roughness: 0.5, metalness: 0.2, clearcoat: 0.3, clearcoatRoughness: 0.35, transparent: true });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.renderOrder = 5;
+      card.add(body);
+
+      function faceGeo() {
+        const g = new THREE.ShapeGeometry(cardShape, 10);
+        const p = g.attributes.position;
+        const uv = g.attributes.uv;
+        for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / CW + 0.5, p.getY(i) / CH + 0.5);
+        return g;
+      }
+      // Vorderseite: Graphit mit feinem Schliff, Kontaktlos-Symbol, abstrakte Prägung (kein Markenname)
+      const frontTex = canvasTex(1712, 1080, (g, w, h) => {
+        const gr = g.createLinearGradient(0, 0, w, h);
+        gr.addColorStop(0, "#5d6168");
+        gr.addColorStop(1, "#3c3f45");
+        g.fillStyle = gr;
+        g.fillRect(0, 0, w, h);
+        const r = mulberry32(11);
+        for (let i = 0; i < 900; i++) {
+          g.strokeStyle = `rgba(255,255,255,${0.015 + r() * 0.03})`;
+          g.beginPath();
+          const y = r() * h;
+          g.moveTo(0, y);
+          g.lineTo(w, y + (r() - 0.5) * 4);
+          g.stroke();
+        }
+        // Kontaktlos-Symbol rechts oben
+        g.strokeStyle = "rgba(225,228,232,0.85)";
+        g.lineWidth = 14;
+        g.lineCap = "round";
+        for (let k = 0; k < 4; k++) {
+          g.beginPath();
+          g.arc(1430, 300, 34 + k * 30, -0.75, 0.75);
+          g.stroke();
+        }
+        // abstrakte Prägung
+        g.fillStyle = "rgba(220,224,230,0.55)";
+        for (let grp = 0; grp < 4; grp++)
+          for (let k = 0; k < 4; k++) {
+            g.beginPath();
+            g.roundRect(150 + grp * 330 + k * 66, 700, 44, 64, 10);
+            g.fill();
+          }
+        g.fillStyle = "rgba(220,224,230,0.35)";
+        g.beginPath();
+        g.roundRect(150, 860, 560, 34, 10);
+        g.fill();
+      });
+      const backTex = canvasTex(1712, 1080, (g, w, h) => {
+        g.fillStyle = "#4b4f55";
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = "#101113"; // Magnetstreifen
+        g.fillRect(0, 110, w, 250);
+        g.fillStyle = "#c9ccd1"; // Unterschriftsfeld
+        g.fillRect(150, 470, 1000, 150);
+        g.strokeStyle = "rgba(0,0,0,0.12)";
+        g.lineWidth = 6;
+        for (let x = 150; x < 1150; x += 26) {
+          g.beginPath();
+          g.moveTo(x, 470);
+          g.lineTo(x + 40, 620);
+          g.stroke();
+        }
+        g.fillStyle = "rgba(220,224,230,0.3)";
+        for (let k = 0; k < 4; k++) {
+          g.beginPath();
+          g.roundRect(150, 720 + k * 60, 900 - k * 140, 24, 8);
+          g.fill();
+        }
+      });
+      const frontMat = new THREE.MeshPhysicalMaterial({ map: frontTex, roughness: 0.45, metalness: 0.25, clearcoat: 0.4, clearcoatRoughness: 0.3, transparent: true, polygonOffset: true, polygonOffsetFactor: -1 });
+      const backMat = new THREE.MeshPhysicalMaterial({ map: backTex, roughness: 0.5, metalness: 0.15, clearcoat: 0.3, transparent: true, polygonOffset: true, polygonOffsetFactor: -1 });
+      const front = new THREE.Mesh(faceGeo(), frontMat);
+      front.position.z = CT / 2 + 0.001;
+      front.renderOrder = 6;
+      card.add(front);
+      const back = new THREE.Mesh(faceGeo(), backMat);
+      back.rotation.y = Math.PI;
+      back.position.z = -CT / 2 - 0.001;
+      back.renderOrder = 6;
+      card.add(back);
+
+      // Röntgen-Kontur der Karte
+      const outlinePts = cardShape.getSpacedPoints(160).map((p) => V(p.x, p.y, 0));
+      const outlineMat = new THREE.MeshBasicMaterial({ color: 0xdfe6ee, transparent: true, opacity: 0, depthWrite: false });
+      for (const z of [CT / 2, -CT / 2]) {
+        const o = new THREE.Mesh(new THREE.TubeGeometry(new PolyCurve(outlinePts.map((p) => V(p.x, p.y, z))), 320, 0.012, 4, true), outlineMat);
+        o.renderOrder = 7;
+        card.add(o);
+      }
+
+      // Chipmodul (Gold) mit Kontaktfeldern
+      const CHIP = V(-2.63, 0.25, CT / 2 + 0.012);
+      const chipTex = canvasTex(480, 380, (g, w, h) => {
+        g.fillStyle = "#e9c36a";
+        g.fillRect(0, 0, w, h);
+        g.strokeStyle = "#5b4316";
+        g.lineWidth = 9;
+        g.lineCap = "round";
+        const path = (pts) => {
+          g.beginPath();
+          g.moveTo(pts[0][0], pts[0][1]);
+          for (const p of pts.slice(1)) g.lineTo(p[0], p[1]);
+          g.stroke();
+        };
+        path([[0, 125], [150, 125], [175, 100], [175, 0]]);
+        path([[0, 255], [150, 255], [175, 280], [175, 380]]);
+        path([[480, 125], [330, 125], [305, 100], [305, 0]]);
+        path([[480, 255], [330, 255], [305, 280], [305, 380]]);
+        path([[175, 100], [175, 280]]);
+        path([[305, 100], [305, 280]]);
+        path([[175, 190], [305, 190]]);
+      });
+      const chipMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: chipTex, metalness: 1, roughness: 0.24, emissive: 0xffffff, emissiveMap: chipTex, emissiveIntensity: 0.32, transparent: true });
+      const chip = new THREE.Mesh(new RoundedBoxGeometry(1.2, 0.95, 0.024, 3, 0.1), chipMat);
+      chip.position.copy(CHIP);
+      chip.renderOrder = 8;
+      card.add(chip);
+      const chipGlow = glowSprite(NEON, 2.6);
+      chipGlow.position.copy(CHIP);
+      card.add(chipGlow);
+
+      // Antenne: 4 Windungen als Spirale entlang des Kartenrands, Enden zum Chip
+      const N_TURNS = 4, INS0 = 0.3, PITCH = 0.15;
+      function rrPoint(f, ax, by, r) {
+        const sx = 2 * (ax - r), sy = 2 * (by - r), arc = (Math.PI / 2) * r;
+        const segs = [sy / 2, arc, sx, arc, sy, arc, sx, arc, sy / 2];
+        const tot = segs.reduce((a, b) => a + b, 0);
+        let d = f * tot;
+        let i = 0;
+        while (i < segs.length - 1 && d > segs[i]) d -= segs[i++];
+        const a = d / (r || 1) ;
+        switch (i) {
+          case 0: return [-ax, -d];
+          case 1: return [-ax + r - r * Math.cos(a), -(by - r) - r * Math.sin(a)];
+          case 2: return [-ax + r + d, -by];
+          case 3: return [ax - r + r * Math.sin(a), -(by - r) - r * Math.cos(a)];
+          case 4: return [ax, -(by - r) + d];
+          case 5: return [ax - r + r * Math.cos(a), by - r + r * Math.sin(a)];
+          case 6: return [ax - r - d, by];
+          case 7: return [-ax + r - r * Math.sin(a), by - r + r * Math.cos(a)];
+          default: return [-ax, by - r - d];
+        }
+      }
+      const coilPts = [];
+      const STEPS = 700;
+      for (let s = 0; s <= N_TURNS * STEPS; s++) {
+        const u = s / STEPS;
+        const inset = INS0 + PITCH * u;
+        const [x, y] = rrPoint(u - Math.floor(u) + (s === N_TURNS * STEPS ? 0 : 0), CW / 2 - inset, CH / 2 - inset, Math.max(0.12, 0.42 - inset * 0.35));
+        coilPts.push(V(x, y, 0));
+      }
+      const innerEnd = coilPts[coilPts.length - 1].clone();
+      const outerStart = coilPts[0].clone();
+      // Zuleitungen: innen direkt zum Chip, außen über eine Brücke
+      const leadIn = [innerEnd, V(innerEnd.x + 0.12, 0.25, 0.0), V(-3.05, 0.25, 0.01)];
+      const coilFull = new PolyCurve([...coilPts, ...leadIn.slice(1)]);
+      const coilMatCopper = new THREE.MeshPhysicalMaterial({ color: 0xd9844a, metalness: 1, roughness: 0.3, emissive: 0x6a2c0c, emissiveIntensity: 0.6 });
+      const coilMatGhost = new THREE.MeshBasicMaterial({ color: 0xd8dde4, transparent: true, opacity: 0.22, depthWrite: false });
+      const coilMatGreen = new THREE.MeshBasicMaterial({ color: NEON.clone().multiplyScalar(1.6) });
+      const coilGeo = new THREE.TubeGeometry(coilFull, 3200, 0.03, 6, false);
+      const coil = new THREE.Mesh(coilGeo, coilMatCopper);
+      coil.renderOrder = 4;
+      card.add(coil);
+      const leadOut = new THREE.Mesh(
+        new THREE.TubeGeometry(new PolyCurve([outerStart, V(outerStart.x, -0.05, 0.02), V(-3.05, -0.05, 0.02), V(-3.05, 0.1, 0.01)]), 40, 0.03, 6, false),
+        coilMatCopper,
+      );
+      leadOut.renderOrder = 4;
+      card.add(leadOut);
+      const coilHaloMat = new THREE.MeshBasicMaterial({ color: NEON, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+      const coilHalo = new THREE.Mesh(new THREE.TubeGeometry(coilFull, 1600, 0.11, 6, false), coilHaloMat);
+      coilHalo.renderOrder = 9;
+      card.add(coilHalo);
+      const pulses = [];
+      for (let i = 0; i < 6; i++) {
+        const s = glowSprite(NEON, 0.9);
+        card.add(s);
+        pulses.push(s);
+      }
+      const ANT_ANCHOR = V(CW / 2 - INS0 - PITCH * 1.5, -0.9, 0); // rechte Kante, mittlere Windung
+
+      // ================= HAND (matte Kunststoff-Hand, hält die Karte am Rand) =================
+      const hand = new THREE.Group();
+      const cap = (a, b, r) => {
+        const len = a.distanceTo(b);
+        const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 6, 16), skin);
+        m.position.copy(a).add(b).multiplyScalar(0.5);
+        m.quaternion.setFromUnitVectors(V(0, 1, 0), b.clone().sub(a).normalize());
+        hand.add(m);
+        return m;
+      };
+      // Karten-Lokalkoordinaten: Griff an der Kante x = -4.28; Daumen auf der Rückseite (-z)
+      const palm = new THREE.Mesh(new RoundedBoxGeometry(3.4, 7.6, 2.6, 4, 1.1), skin);
+      palm.position.set(-6.5, -2.2, -0.2);
+      palm.rotation.z = deg(-18);
+      hand.add(palm);
+      cap(V(-7.2, -5.6, -0.2), V(-9.8, -13.5, -0.4), 1.95); // Handgelenk/Unterarm
+      // Daumen auf der Kartenrückseite
+      cap(V(-5.6, -0.6, -1.25), V(-4.3, 0.6, -0.95), 0.82);
+      cap(V(-4.3, 0.6, -0.95), V(-3.1, 1.1, -0.86), 0.74);
+      // Finger auf der Vorderseite (nur die Spitzen reichen über die Kante)
+      [1.7, 0.45, -0.8, -2.0].forEach((y, i) => {
+        const tipX = -3.75 - i * 0.12;
+        cap(V(-5.9, y - 0.6, 1.3), V(-4.6, y, 1.05), 0.7);
+        cap(V(-4.6, y, 1.05), V(tipX, y + 0.1, 0.72), 0.64);
+      });
+      card.add(hand);
+
+      // ================= TERMINAL =================
+      const terminal = new THREE.Group();
+      scene.add(terminal);
+      const TB = { w: 8, h: 16, d: 3 };
+      const tBody = new THREE.Mesh(new RoundedBoxGeometry(TB.w, TB.h, TB.d, 6, 1.0), plasticDark);
+      terminal.add(tBody);
+      const bezel = new THREE.Mesh(new RoundedBoxGeometry(7.0, 6.3, 0.2, 4, 0.09), brushed);
+      bezel.position.set(0, 3.6, TB.d / 2);
+      terminal.add(bezel);
+      const DISP = V(0, 3.6, TB.d / 2 + 0.11);
+      // Display (Canvas-Textur): Betrag + Kontaktlos-Symbol oder grüner Haken
+      const dispCanvas = document.createElement("canvas");
+      dispCanvas.width = 620;
+      dispCanvas.height = 520;
+      const dispTex = new THREE.CanvasTexture(dispCanvas);
+      dispTex.colorSpace = THREE.SRGBColorSpace;
+      let dispKey = "";
+      function drawDisplay(okP) {
+        const k = okP <= 0 ? "idle" : "ok" + Math.round(okP * 60);
+        if (k === dispKey) return;
+        dispKey = k;
+        const g = dispCanvas.getContext("2d");
+        const w = 620, h = 520;
+        g.fillStyle = "#0b0c0e";
+        g.fillRect(0, 0, w, h);
+        g.textAlign = "center";
+        g.fillStyle = "#e9ecef";
+        g.font = '700 86px "Inter", sans-serif';
+        g.globalAlpha = 1 - okP * 0.75;
+        g.fillText("4,20 €", w / 2, 150);
+        if (okP <= 0) {
+          g.strokeStyle = "#c9ced4";
+          g.lineWidth = 16;
+          g.lineCap = "round";
+          for (let i = 0; i < 4; i++) {
+            g.beginPath();
+            g.arc(250, 340, 28 + i * 34, -0.8, 0.8);
+            g.stroke();
+          }
+        } else {
+          g.globalAlpha = 1;
+          const cx = w / 2, cy = 330, R = 120;
+          g.strokeStyle = "#39ff7a";
+          g.lineWidth = 18;
+          g.lineCap = "round";
+          g.lineJoin = "round";
+          const pr = clamp01(okP * 1.6);
+          g.beginPath();
+          g.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + pr * Math.PI * 2);
+          g.stroke();
+          const pc = clamp01((okP - 0.35) / 0.65);
+          if (pc > 0) {
+            const a = [cx - 58, cy + 2], b = [cx - 15, cy + 46], c = [cx + 62, cy - 44];
+            g.beginPath();
+            g.moveTo(a[0], a[1]);
+            const l1 = Math.hypot(b[0] - a[0], b[1] - a[1]);
+            const l2 = Math.hypot(c[0] - b[0], c[1] - b[1]);
+            const L = (l1 + l2) * pc;
+            if (L <= l1) g.lineTo(a[0] + ((b[0] - a[0]) * L) / l1, a[1] + ((b[1] - a[1]) * L) / l1);
+            else {
+              g.lineTo(b[0], b[1]);
+              const q = (L - l1) / l2;
+              g.lineTo(b[0] + (c[0] - b[0]) * q, b[1] + (c[1] - b[1]) * q);
+            }
+            g.stroke();
+          }
+        }
+        g.globalAlpha = 1;
+        dispTex.needsUpdate = true;
+      }
+      const display = new THREE.Mesh(
+        new THREE.PlaneGeometry(6.2, 5.2),
+        new THREE.MeshPhysicalMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: dispTex, emissiveIntensity: 1.1, roughness: 0.12, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05 }),
+      );
+      display.position.copy(DISP);
+      terminal.add(display);
+      // Tastenfeld: gebürstetes Metall, Ziffern als Gravur
+      const keyGeo = new RoundedBoxGeometry(1.9, 1.1, 0.32, 3, 0.16);
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 3; c++) {
+          const k = new THREE.Mesh(keyGeo, r === 3 ? plasticKey : brushedKey);
+          k.position.set((c - 1) * 2.3, -1.25 - r * 1.5, TB.d / 2 + 0.06);
+          terminal.add(k);
+        }
+      // Ständer (gebürstetes Metall)
+      const stand = new THREE.Group();
+      scene.add(stand);
+      const standBase = new THREE.Mesh(new RoundedBoxGeometry(10, 0.8, 9, 4, 0.3), brushed);
+      standBase.position.set(0, 0.4, -1);
+      stand.add(standBase);
+      const standBack = new THREE.Mesh(new RoundedBoxGeometry(7, 9, 0.7, 4, 0.3), brushed);
+      standBack.position.set(0, 4.6, -3.6);
+      standBack.rotation.x = deg(-20);
+      stand.add(standBack);
+      const standShadow = contactShadow(16, 14);
+      stand.add(standShadow);
+      const flatShadow = contactShadow(13, 22);
+      scene.add(flatShadow);
+
+      // ================= FELDLINIEN (Szene 5) =================
+      const field = new THREE.Group();
+      scene.add(field);
+      const fieldCore = new THREE.MeshBasicMaterial({ color: NEON.clone().multiplyScalar(1.4), transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+      const fieldHalo = new THREE.MeshBasicMaterial({ color: NEON, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false });
+      const fieldLines = [];
+      const STRETCH = 1.7;
+      [4.2, 7.0, 10.0].forEach((L, li) => {
+        for (let k = 0; k < 8; k++) {
+          const phi = (k / 8) * Math.PI * 2 + li * 0.2;
+          const pts = [];
+          for (let s = 0; s <= 160; s++) {
+            const th = lerp(Math.asin(Math.sqrt(0.3 / L)), Math.PI * 0.62, s / 160);
+            const r = L * Math.sin(th) ** 2;
+            const rho = r * Math.sin(th);
+            const y = r * Math.cos(th) * STRETCH;
+            if (y < -3.0) break;
+            pts.push(V(rho * Math.cos(phi), y, rho * Math.sin(phi)));
+          }
+          const curve = new PolyCurve(pts);
+          const core = new THREE.Mesh(new THREE.TubeGeometry(curve, 200, 0.03, 5, false), fieldCore);
+          const halo = new THREE.Mesh(new THREE.TubeGeometry(curve, 100, 0.12, 6, false), fieldHalo);
+          core.renderOrder = halo.renderOrder = 9;
+          field.add(core, halo);
+          const dots = [glowSprite(NEON, 0.7), glowSprite(NEON, 0.7)];
+          dots.forEach((d) => field.add(d));
+          fieldLines.push({ curve, core, halo, dots, seed: mulberry32(100 + li * 8 + k)() });
+        }
+      });
+      const MHZ_LINE = fieldLines[16]; // äußerer Ring, rechte Seite
+
+      // ================= LINEAL + REICHWEITE (Szene 6) =================
+      const rulerG = new THREE.Group();
+      scene.add(rulerG);
+      const rulerTex = canvasTex(256, 1600, (g, w, h) => {
+        g.fillStyle = "#c4c8cd";
+        g.fillRect(0, 0, w, h);
+        const r = mulberry32(5);
+        for (let i = 0; i < 400; i++) {
+          g.fillStyle = `rgba(255,255,255,${r() * 0.1})`;
+          g.fillRect(0, r() * h, w, 1);
+        }
+        g.fillStyle = "#1a1b1e";
+        g.font = '700 54px "Inter", sans-serif';
+        g.textAlign = "left";
+        // 8 cm Skala, 200 px pro cm, 0 unten
+        for (let mm = 0; mm <= 80; mm++) {
+          const y = h - mm * 20;
+          const len = mm % 10 === 0 ? 120 : mm % 5 === 0 ? 80 : 48;
+          g.fillRect(0, y - 2, len, 4);
+          if (mm % 10 === 0 && mm > 0 && mm < 80) g.fillText(String(mm / 10), 136, y + 20);
+        }
+      });
+      const RULER_H = 8;
+      const ruler = new THREE.Mesh(
+        new THREE.BoxGeometry(1.28, RULER_H, 0.12),
+        [brushed, brushed, brushed, brushed, new THREE.MeshPhysicalMaterial({ map: rulerTex, metalness: 0.7, roughness: 0.42 }), brushed],
+      );
+      rulerG.add(ruler);
+      const rulerPost = new THREE.Mesh(new RoundedBoxGeometry(2.0, 3.1, 1.6, 3, 0.2), plasticDark);
+      rulerG.add(rulerPost);
+      const greenBarMat = new THREE.MeshBasicMaterial({ color: NEON.clone().multiplyScalar(1.3) });
+      const greenBar = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 1), greenBarMat);
+      rulerG.add(greenBar);
+      const zoneMat = new THREE.MeshBasicMaterial({ color: NEON, transparent: true, opacity: 0.025, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide });
+      const zone = new THREE.Mesh(new THREE.BoxGeometry(6.6, 4, 5.6), zoneMat);
+      zone.renderOrder = 9;
+      scene.add(zone);
+      const zoneTopMat = new THREE.MeshBasicMaterial({ color: NEON.clone().multiplyScalar(1.3), transparent: true, opacity: 0.9, depthWrite: false });
+      const zoneTop = new THREE.Mesh(
+        new THREE.TubeGeometry(new PolyCurve([V(-3.3, 0, -2.8), V(3.3, 0, -2.8), V(3.3, 0, 2.8), V(-3.3, 0, 2.8), V(-3.3, 0, -2.8)]), 200, 0.025, 4, false),
+        zoneTopMat,
+      );
+      scene.add(zoneTop);
+      const zoneLink = new THREE.Mesh(new THREE.TubeGeometry(new PolyCurve([V(0, 0, 0), V(1, 0, 0)]), 2, 0.02, 4, false), zoneTopMat);
+      scene.add(zoneLink);
+
+      // ================= DATENPAKET (Szene 7) =================
+      const packet = new THREE.Group();
+      scene.add(packet);
+      const packetHead = glowSprite(NEON.clone().multiplyScalar(1.6), 1.5);
+      const packetCore = new THREE.Mesh(new THREE.SphereGeometry(0.16, 20, 12), new THREE.MeshBasicMaterial({ color: 0xeafff0 }));
+      packet.add(packetHead, packetCore);
+      const trail = [];
+      for (let i = 0; i < 10; i++) {
+        const s = glowSprite(NEON, 1.1 - i * 0.08);
+        scene.add(s);
+        trail.push(s);
+      }
+
+      // ---------- Kamera ----------
+      const camera = new THREE.PerspectiveCamera(30, W / H, 0.05, 600);
+      function setCam(pos, target, fov = 30) {
+        camera.position.copy(pos);
+        camera.fov = fov;
+        camera.updateProjectionMatrix();
+        camera.lookAt(target);
+        camera.updateMatrixWorld();
+      }
+
+      // ---------- Szenenzustände ----------
+      const tmpM = new THREE.Matrix4();
+      const qFlip = new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), Math.PI);
+      function resetAll() {
+        card.visible = true;
+        hand.visible = false;
+        terminal.visible = false;
+        stand.visible = false;
+        flatShadow.visible = false;
+        field.visible = false;
+        rulerG.visible = false;
+        zone.visible = zoneTop.visible = zoneLink.visible = false;
+        packet.visible = false;
+        trail.forEach((s) => (s.visible = false));
+        setXray(0);
+        coil.visible = leadOut.visible = false;
+        coil.geometry.setDrawRange(0, Infinity);
+        coilHaloMat.opacity = 0;
+        coilHalo.visible = false;
+        pulses.forEach((p) => (p.visible = false));
+        chipGlow.visible = false;
+        chip.material = chipMat;
+        chipMat.opacity = 1;
+        card.position.set(0, 0, 0);
+        card.quaternion.identity();
+        drawDisplay(0);
+      }
+      function setXray(x) {
+        bodyMat.opacity = lerp(1, 0.08, x);
+        frontMat.opacity = backMat.opacity = lerp(1, 0.04, x);
+        bodyMat.depthWrite = frontMat.depthWrite = backMat.depthWrite = x < 0.01;
+        outlineMat.opacity = 0.55 * x;
+      }
+      function setCoil(mat) {
+        coil.material = mat;
+        leadOut.material = mat;
+        coil.visible = leadOut.visible = true;
+      }
+      // stehendes Terminal (Szenen 1 und 7): Gerät lehnt am Ständer
+      function standingTerminal() {
+        terminal.visible = true;
+        stand.visible = true;
+        terminal.position.set(0, 9.2, -1.2);
+        terminal.rotation.set(deg(-20), 0, 0);
+        terminal.updateMatrixWorld(true);
+      }
+      // liegendes Terminal (Szenen 5 und 6): Display zeigt nach oben, Mitte bei (0, ~3.1, 0)
+      function flatTerminal() {
+        terminal.visible = true;
+        flatShadow.visible = true;
+        terminal.position.set(0, TB.d / 2, DISP.y);
+        terminal.rotation.set(-Math.PI / 2, 0, 0);
+        terminal.updateMatrixWorld(true);
+      }
+      const dispWorld = () => display.getWorldPosition(new THREE.Vector3());
+      const dispNormal = () => V(0, 0, 1).applyQuaternion(terminal.quaternion).normalize();
+      // Karte parallel vor dem Display, Vorderseite zum Terminal
+      function cardAtDisplay(dist, offX = 0.5, offY = 3.5) {
+        const q = terminal.quaternion.clone().multiply(qFlip);
+        card.quaternion.copy(q).multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 0, 1), deg(-6)));
+        const p = DISP.clone().add(V(offX, offY, 0.04 + dist));
+        card.position.copy(p.applyMatrix4(terminal.matrixWorld));
+      }
+
+      const SCENES = [
+        // 1 HOOK: Hand hält Karte ans Terminal, grüner Haken. Kamera: langsames Heranfahren
+        (lt) => {
+          standingTerminal();
+          hand.visible = true;
+          cardAtDisplay(lerp(7.5, 1.6, prog(lt, 0.15, 1.5, eO)));
+          drawDisplay(prog(lt, 1.6, 2.4, ease("power2.out")));
+          const p = prog(lt, -0.4, 5.4);
+          setCam(V(lerp(-17, -11.5, p), lerp(26, 21.5, p), lerp(62, 43, p)), V(0.4, lerp(11.2, 11.6, p), 0));
+        },
+        // 2 GESAMTANSICHT: Karte schwebt und dreht sich langsam. Kamera: sanftes Heranfahren
+        (lt) => {
+          card.position.set(0, 8.2, 0);
+          card.rotation.set(deg(-8), deg(lerp(-62, 38, prog(lt, -0.4, 5.4, eSine))), deg(4));
+          const p = prog(lt, -0.4, 5.4);
+          setCam(V(0, 11.5, lerp(43, 39, p)), V(0, 7.6, 0));
+        },
+        // 3 RÖNTGENBLICK: Karte wird durchsichtig, Kupferspule erscheint. Kamera: Umkreisung ~30°
+        (lt) => {
+          card.position.set(0, 8.2, 0);
+          card.rotation.set(0, 0, 0);
+          setXray(prog(lt, 0.0, 1.1));
+          setCoil(coilMatCopper);
+          const n = coil.geometry.index.count;
+          const rp = prog(lt, 0.5, 2.3);
+          coil.geometry.setDrawRange(0, Math.floor((n * rp) / 6) * 6);
+          leadOut.visible = rp > 0.98;
+          chip.material = coilMatGhost;
+          const a = deg(lerp(-16, 16, prog(lt, -0.4, 5.4)));
+          setCam(V(Math.sin(a) * 38, 11.0, Math.cos(a) * 38), V(0, 7.7, 0));
+        },
+        // 4 MAKRO: Kamerafahrt auf den goldenen Chip
+        (lt) => {
+          card.position.set(0, 8.2, 0);
+          card.rotation.set(0, 0, 0);
+          setXray(1);
+          setCoil(coilMatGhost);
+          card.updateMatrixWorld(true);
+          const chipW = CHIP.clone().applyMatrix4(card.matrixWorld);
+          const p = prog(lt, -0.4, 5.4);
+          outlineMat.opacity = 0.55 * (1 - prog(lt, 0.0, 2.5));
+          bodyMat.opacity = lerp(0.08, 0.03, p);
+          const d = Math.exp(lerp(Math.log(38), Math.log(6.2), p));
+          const target = V(0, 7.7, 0).lerp(chipW, p);
+          const dir = V(lerp(0, 0.22, p), lerp(0.087, 0.3, p), 1).normalize();
+          setCam(target.clone().add(dir.multiplyScalar(d)), target);
+        },
+        // 5 PRINZIP: Feldlinien, Karte nähert sich, Spule leuchtet, Energie fließt zum Chip
+        (lt) => {
+          flatTerminal();
+          field.visible = true;
+          const D = dispWorld();
+          field.position.copy(D);
+          const grow = prog(lt, 0.0, 1.3);
+          fieldLines.forEach((F) => {
+            for (const m of [F.core, F.halo]) {
+              const n = m.geometry.index.count;
+              m.geometry.setDrawRange(0, Math.floor((n * grow) / 6) * 6);
+            }
+            F.dots.forEach((d, i) => {
+              const u = (lt * 0.28 + F.seed + i * 0.5) % 1;
+              d.visible = grow > 0.95;
+              F.curve.getPoint(u, d.position);
+              d.material.opacity = Math.sin(Math.PI * u) * 0.9;
+            });
+          });
+          // Karte waagerecht, Vorderseite nach unten, sinkt auf das Terminal zu
+          const h = lerp(15.5, 5.2, prog(lt, 0.5, 3.0));
+          card.position.set(D.x + 0.4, D.y + h, D.z + 0.2);
+          card.rotation.set(Math.PI / 2, 0, deg(8));
+          setXray(1);
+          const e = prog(lt, 2.4, 3.0);
+          setCoil(e > 0.5 ? coilMatGreen : coilMatGhost);
+          coilHalo.visible = e > 0;
+          coilHaloMat.opacity = 0.35 * e;
+          chip.material = coilMatGhost;
+          pulses.forEach((s, i) => {
+            const u = (lt - 2.6) * 0.38 - i * 0.16;
+            s.visible = e > 0.5 && u > 0 && u < 1;
+            if (s.visible) coilFull.getPoint(u, s.position);
+          });
+          const c = prog(lt, 3.2, 3.8);
+          chipGlow.visible = c > 0;
+          chipGlow.material.opacity = c;
+          if (c > 0.5) chip.material = coilMatGreen;
+          const p = prog(lt, -0.4, 5.4);
+          setCam(V(lerp(-9, -7, p), lerp(30, 27, p), lerp(46, 39, p)), V(0.4, lerp(7.6, 7.2, p), 0));
+        },
+        // 6 DETAIL: Lineal markiert ~4 cm Reichweite
+        (lt) => {
+          flatTerminal();
+          const D = dispWorld();
+          rulerG.visible = true;
+          rulerG.position.set(D.x + 5.2, 0, D.z + 1.0);
+          rulerPost.position.set(0, 1.55, -0.6);
+          ruler.position.set(0, D.y + RULER_H / 2, 0);
+          const bar = prog(lt, 0.7, 1.7);
+          greenBar.visible = bar > 0;
+          greenBar.scale.y = Math.max(0.001, 4 * bar);
+          greenBar.position.set(-0.56, D.y + 2 * bar, 0.065);
+          zone.visible = zoneTop.visible = zoneLink.visible = true;
+          const zp = prog(lt, 1.2, 2.0);
+          zoneMat.opacity = 0.025 * zp;
+          zoneTopMat.opacity = 0.9 * zp;
+          zone.position.set(D.x, D.y + 2, D.z);
+          zoneTop.position.set(D.x, D.y + 4, D.z);
+          zoneLink.position.set(D.x + 3.3, D.y + 4, D.z + 1.0);
+          zoneLink.scale.x = Math.max(0.001, 1.25 * zp);
+          // Karte schwebt von 9 cm auf 3,4 cm herab (Rückseite oben, keine Röntgenansicht)
+          const h = lerp(9.5, 3.4, prog(lt, 0.2, 2.6));
+          card.position.set(D.x, D.y + h, D.z);
+          card.rotation.set(Math.PI / 2, 0, 0);
+          const p = prog(lt, -0.4, 5.4);
+          setCam(V(lerp(-4.5, -3.5, p), lerp(10.5, 9.4, p), lerp(42, 34, p)), V(1.2, lerp(6.2, 6.0, p), 0));
+        },
+        // 7 AUFLÖSUNG: zurück zu Szene 1, Lichtpunkt fliegt zum Terminal, Haken
+        (lt) => {
+          standingTerminal();
+          hand.visible = true;
+          cardAtDisplay(3.4);
+          const D = dispWorld();
+          const N = dispNormal();
+          card.updateMatrixWorld(true);
+          const start = D.clone().add(N.clone().multiplyScalar(3.0)).add(V(0.2, 0.3, 0));
+          const end = D.clone().add(N.clone().multiplyScalar(0.25));
+          const mid = start.clone().lerp(end, 0.5).add(V(-3.2, 1.6, 0.8));
+          const fp = (u) => {
+            const a = start.clone().lerp(mid, u);
+            const b = mid.clone().lerp(end, u);
+            return a.lerp(b, u);
+          };
+          const pp = prog(lt, 1.0, 2.6);
+          packet.visible = lt > 0.75 && pp < 1;
+          const pop = prog(lt, 0.75, 1.0, eO);
+          packet.position.copy(fp(pp));
+          packet.scale.setScalar(Math.max(0.001, pop * (1 - prog(lt, 2.45, 2.6))));
+          trail.forEach((s, i) => {
+            const u = pp - (i + 1) * 0.035;
+            s.visible = packet.visible && u > 0;
+            if (s.visible) {
+              s.position.copy(fp(u));
+              s.material.opacity = 0.55 * (1 - i / trail.length) * pop;
+            }
+          });
+          host.packetPos = packet.visible ? packet.position.clone() : end.clone();
+          drawDisplay(prog(lt, 2.55, 3.3, ease("power2.out")));
+          const p = prog(lt, -0.4, 4.6);
+          setCam(V(lerp(-9.0, -17, p), lerp(17.5, 26, p), lerp(25, 62, p)), V(lerp(-0.2, 0.4, p), lerp(11.4, 11.2, p), 0));
+        },
+      ];
+
+      // Label-Anker (Weltkoordinaten), pro Szene
+      const ANCHORS = {
+        "lbl-antenne": () => ANT_ANCHOR.clone().applyMatrix4(card.matrixWorld),
+        "lbl-chip": () => CHIP.clone().add(V(0.25, -0.2, 0)).applyMatrix4(card.matrixWorld),
+        "lbl-mhz": () => MHZ_LINE.curve.getPoint(0.55).add(field.position),
+        "lbl-range": () => {
+          const D = dispWorld();
+          return V(rulerG.position.x - 0.64, D.y + 4, rulerG.position.z + 0.07);
+        },
+        "lbl-code": () => host.packetPos || V(0, 0, 0),
+      };
+      const labelEls = {};
+      host.labels.forEach((L) => {
+        const r = document.getElementById(L.id);
+        labelEls[L.id] = { line: r.querySelector("line"), dot: r.querySelector("circle"), L };
+      });
+      function updateLabels(sceneIdx, t) {
+        host.labels.forEach((L) => {
+          const s = Math.floor(L.at / 5);
+          if (s !== sceneIdx) return;
+          const p = ANCHORS[L.id]().project(camera);
+          const x = (p.x * 0.5 + 0.5) * W;
+          const y = (-p.y * 0.5 + 0.5) * H;
+          const el = labelEls[L.id];
+          el.line.setAttribute("x1", x.toFixed(1));
+          el.line.setAttribute("y1", y.toFixed(1));
+          el.dot.setAttribute("cx", x.toFixed(1));
+          el.dot.setAttribute("cy", y.toFixed(1));
+        });
+      }
+
+      // ---------- Komposit: Überblendung / Zoom-Durchflug + Vignette ----------
+      const compMat = new THREE.ShaderMaterial({
+        uniforms: {
+          tA: { value: rtA.texture },
+          tB: { value: rtB.texture },
+          mixv: { value: 0 },
+          zoomA: { value: 1 },
+          zoomB: { value: 1 },
+          blurA: { value: 0 },
+          blurB: { value: 0 },
+        },
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+        fragmentShader: `
+          uniform sampler2D tA; uniform sampler2D tB;
+          uniform float mixv, zoomA, zoomB, blurA, blurB;
+          varying vec2 vUv;
+          vec4 zs(sampler2D t, vec2 uv, float zoom, float blur){
+            vec2 c = vec2(0.5, 0.5);
+            vec2 u = c + (uv - c) / zoom;
+            if (blur < 0.0005) return texture2D(t, u);
+            vec4 acc = vec4(0.0);
+            float j = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+            for (int i = 0; i < 32; i++) {
+              float k = (float(i) + j) / 32.0;
+              acc += texture2D(t, c + (u - c) * (1.0 - blur * k));
+            }
+            return acc / 32.0;
+          }
+          void main(){
+            vec4 a = zs(tA, vUv, zoomA, blurA);
+            vec4 col = a;
+            if (mixv > 0.0005) { vec4 b = zs(tB, vUv, zoomB, blurB); col = mix(a, b, mixv); }
+            vec2 d = (vUv - 0.5) * vec2(1.0, 1.7777);
+            float r = length(d * vec2(1.0, 0.62));
+            col.rgb *= mix(1.0, 0.42, smoothstep(0.32, 1.05, r));
+            col.rgb = max(col.rgb, vec3(0.0));
+            gl_FragColor = vec4(col.rgb, 1.0);
+            #include <tonemapping_fragment>
+            #include <colorspace_fragment>
+          }`,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const compScene = new THREE.Scene();
+      compScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), compMat));
+      const compCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+      function renderSceneTo(idx, lt, rt) {
+        resetAll();
+        SCENES[idx](lt);
+        scene.updateMatrixWorld(true);
+        updateLabels(idx, lt);
+        renderer.setRenderTarget(rt);
+        renderer.render(scene, camera);
+      }
+
+      // Übergänge an den Szenengrenzen: "zoom" = Zoom-Durchflug, "fade" = Überblendung
+      const TRANS = { 1: "zoom", 2: "fade", 3: "zoom", 4: "fade", 5: "fade", 6: "fade" };
+      const HALF = 0.4;
+      function render(t) {
+        t = Math.min(34.999, Math.max(0, t));
+        let a = Math.min(6, Math.floor(t / 5));
+        let b = -1;
+        let m = 0;
+        for (let k = 1; k <= 6; k++) {
+          if (Math.abs(t - 5 * k) < HALF) {
+            a = k - 1;
+            b = k;
+            m = clamp01((t - 5 * k + HALF) / (2 * HALF));
+          }
+        }
+        // Zuerst Szene B (deren Labels werden nicht gezeigt), dann A, damit A die Anker setzt
+        if (b >= 0) renderSceneTo(b, t - 5 * b, rtB);
+        renderSceneTo(a, t - 5 * a, rtA);
+        const u = compMat.uniforms;
+        const kind = b >= 0 ? TRANS[b] : "none";
+        const sm = m * m * (3 - 2 * m);
+        u.mixv.value = b >= 0 ? sm : 0;
+        if (kind === "zoom") {
+          u.zoomA.value = 1 + 1.4 * m * m;
+          u.blurA.value = 0.10 * Math.sin(Math.PI * Math.min(1, m * 1.2));
+          u.zoomB.value = 1 + 0.45 * (1 - m) * (1 - m);
+          u.blurB.value = 0.06 * (1 - m);
+        } else {
+          u.zoomA.value = u.zoomB.value = 1;
+          u.blurA.value = u.blurB.value = 0;
+        }
+        renderer.setRenderTarget(null);
+        renderer.render(compScene, compCam);
+      }
+
+      // Schrift fürs Display laden, bevor gezeichnet wird
+      try {
+        await document.fonts.load('700 86px "Inter"');
+      } catch (e) {
+        /* Fallback: Systemschrift */
+      }
+      await renderer.compileAsync(scene, camera);
+      host.render = render;
+      render(host.clock.t);
+      host.ready();
+    </script>
+  </body>
+</html>
