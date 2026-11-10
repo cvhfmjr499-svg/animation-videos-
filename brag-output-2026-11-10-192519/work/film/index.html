@@ -1,0 +1,399 @@
+<!doctype html>
+<!--
+  Brag „Wissen in 30 Sekunden – Staffel 1“: 20 s, 1920×1080, 150 BPM (Schlag 0,4 s).
+  Zeigt nur die sauberen Folgen aus dem Repository: Kontaktlos (k), Blood Falls (b), AirPods mit eigenem Modell (a).
+-->
+<html lang="de" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #0e0e0f;
+        --grey: #8d8f94;
+        --amber: #ffb547;
+        --blue: #3d8bff;
+        --cyan: #4fe3ff;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+        font-family: "Inter", sans-serif;
+        color: #fff;
+      }
+      #bg {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(1100px 700px at 50% 56%, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 70%),
+          radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.55) 100%);
+      }
+      .frame {
+        position: absolute;
+        background: #050505;
+        border: 2px solid #2e2f33;
+        box-shadow:
+          0 40px 90px rgba(0, 0, 0, 0.6),
+          inset 0 0 0 7px #0b0b0c;
+        opacity: 0;
+      }
+      .phone {
+        width: 349px;
+        height: 620px;
+        border-radius: 42px;
+        top: 280px;
+      }
+      .wide {
+        width: 760px;
+        height: 428px;
+        border-radius: 26px;
+        top: 376px;
+      }
+      .screen {
+        position: absolute;
+        inset: 10px;
+        overflow: hidden;
+        background: #111;
+      }
+      .phone .screen {
+        border-radius: 32px;
+      }
+      .wide .screen {
+        border-radius: 16px;
+      }
+      .screen video {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .ctr {
+        position: absolute;
+        left: 0;
+        width: 1920px;
+        text-align: center;
+      }
+      .h {
+        font-size: 76px;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+      }
+      .h .w {
+        display: inline-block;
+        opacity: 0;
+      }
+      .sub {
+        font-size: 32px;
+        font-weight: 400;
+        color: var(--grey);
+        opacity: 0;
+      }
+      .cap {
+        position: absolute;
+        top: 922px;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-align: center;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      .cap small {
+        display: block;
+        margin-top: 8px;
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: var(--grey);
+      }
+      /* Code */
+      #code {
+        position: absolute;
+        left: 120px;
+        top: 250px;
+        width: 1080px;
+        height: 640px;
+        border-radius: 22px;
+        background: #141416;
+        border: 2px solid #2a2b2f;
+        box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        overflow: hidden;
+      }
+      #code .bar {
+        height: 54px;
+        border-bottom: 1px solid #25262a;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 22px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 19px;
+        color: #8a8d93;
+      }
+      #code .bar i {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: #3a3b40;
+        display: inline-block;
+      }
+      #code .bar span {
+        margin-left: 12px;
+      }
+      #code pre {
+        padding: 22px 28px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 20.5px;
+        line-height: 1.62;
+        color: #d6d7da;
+      }
+      #code .ln {
+        display: block;
+        white-space: pre;
+        clip-path: inset(0% 100% 0% 0%);
+        position: relative;
+      }
+      #code .hl {
+        position: absolute;
+        left: -10px;
+        right: -10px;
+        top: 0;
+        bottom: 0;
+        border-radius: 6px;
+        background: rgba(255, 181, 71, 0.16);
+        box-shadow: inset 3px 0 0 #ffb547;
+        opacity: 0;
+      }
+      .kw {
+        color: #7aa2ff;
+      }
+      .nu {
+        color: #ffb547;
+      }
+      .cm {
+        color: #66696f;
+      }
+      .fn {
+        color: #c9a2ff;
+      }
+      #h4 {
+        position: absolute;
+        left: 120px;
+        top: 120px;
+        font-size: 62px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      #h4 .w {
+        display: inline-block;
+        opacity: 0;
+      }
+      /* Equalizer neben „Mit eigenem Sound.“ */
+      #eq {
+        position: absolute;
+        left: 1328px;
+        top: 136px;
+        width: 120px;
+        height: 70px;
+        display: flex;
+        align-items: flex-end;
+        gap: 9px;
+        opacity: 0;
+      }
+      #eq i {
+        width: 10px;
+        height: 8px;
+        border-radius: 5px;
+        background: var(--blue);
+        display: block;
+        transform-origin: 50% 100%;
+      }
+      #flash {
+        position: absolute;
+        inset: 0;
+        background: #ffffff;
+        opacity: 0;
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <div id="bg"></div>
+
+      <!-- Rahmen mit den echten Folgen -->
+      <div class="frame phone" id="fk" style="left: 183px">
+        <div class="screen">
+          <video id="k1" class="clip" src="assets/k.mp4" muted playsinline data-start="0" data-duration="2.4" data-media-start="1.4" data-track-index="1"></video>
+          <video id="k2" class="clip" src="assets/k.mp4" muted playsinline data-start="2.4" data-duration="3.2" data-media-start="4.4" data-track-index="1"></video>
+          <video id="k3" class="clip" src="assets/k.mp4" muted playsinline data-start="5.6" data-duration="3.2" data-media-start="9.0" data-track-index="1"></video>
+          <video id="k4" class="clip" src="assets/k.mp4" muted playsinline data-start="8.8" data-duration="4" data-media-start="16.3" data-track-index="1"></video>
+          <video id="k6" class="clip" src="assets/k.mp4" muted playsinline data-start="16" data-duration="4" data-media-start="26" data-track-index="1"></video>
+        </div>
+      </div>
+      <div class="frame phone" id="fb" style="left: 580px">
+        <div class="screen">
+          <video id="b1" class="clip" src="assets/b.mp4" muted playsinline data-start="0.8" data-duration="1.6" data-media-start="1.0" data-track-index="2"></video>
+          <video id="b2" class="clip" src="assets/b.mp4" muted playsinline data-start="2.4" data-duration="3.2" data-media-start="18.4" data-track-index="2"></video>
+          <video id="b3" class="clip" src="assets/b.mp4" muted playsinline data-start="5.6" data-duration="3.2" data-media-start="8.6" data-track-index="2"></video>
+          <video id="b6" class="clip" src="assets/b.mp4" muted playsinline data-start="16" data-duration="4" data-media-start="25.9" data-track-index="2"></video>
+        </div>
+      </div>
+      <div class="frame wide" id="fa" style="left: 977px">
+        <div class="screen">
+          <video id="a1" class="clip" src="assets/a.mp4" muted playsinline data-start="1.6" data-duration="0.8" data-media-start="1.0" data-track-index="3"></video>
+          <video id="a2" class="clip" src="assets/a.mp4" muted playsinline data-start="2.4" data-duration="3.2" data-media-start="14.8" data-track-index="3"></video>
+          <video id="a3" class="clip" src="assets/a.mp4" muted playsinline data-start="5.6" data-duration="3.2" data-media-start="2.6" data-track-index="3"></video>
+          <video id="a5" class="clip" src="assets/a.mp4" muted playsinline data-start="12.8" data-duration="3.2" data-media-start="7.3" data-track-index="3"></video>
+          <video id="a6" class="clip" src="assets/a.mp4" muted playsinline data-start="16" data-duration="3.98" data-media-start="16" data-track-index="3"></video>
+        </div>
+      </div>
+
+      <!-- 2 Reveal -->
+      <div class="ctr h" id="h2" style="top: 96px"><span class="w">Drei</span> <span class="w">Fragen.</span> <span class="w">Je</span> <span class="w">30</span> <span class="w">Sekunden.</span></div>
+      <div class="ctr sub" id="s2" style="top: 196px">3D-Erklärvideos – komplett aus Code.</div>
+      <!-- 3 Röntgen -->
+      <div class="ctr h" id="h3" style="top: 120px"><span class="w">Röntgenblick.</span></div>
+      <div class="cap" id="ck3" style="left: 183px; width: 349px">ANTENNE</div>
+      <div class="cap" id="cb3" style="left: 580px; width: 349px">SALZWASSER</div>
+      <div class="cap" id="ca3" style="left: 977px; width: 760px">CHIP · AKKU · MIKROFONE</div>
+      <!-- 4 Code -->
+      <div id="h4"><span class="w">Kein</span> <span class="w">Schnittprogramm.</span> <span class="w" style="color: var(--amber)">Nur</span> <span class="w" style="color: var(--amber)">Code.</span></div>
+      <div id="code">
+        <div class="bar"><i></i><i></i><i></i><span>contactless/video/compositions/world.html</span></div>
+        <pre id="src">
+// ================= FELDLINIEN (Szene 5) =================
+const STRETCH = 1.7;
+[4.2, 7.0, 10.0].forEach((L, li) => {
+  for (let k = 0; k < 8; k++) {
+    const phi = (k / 8) * Math.PI * 2 + li * 0.2;
+    const pts = [];
+    for (let s = 0; s <= 160; s++) {
+      const th = lerp(Math.asin(Math.sqrt(0.3 / L)), Math.PI * 0.62, s / 160);
+      const r = L * Math.sin(th) ** 2;
+      const rho = r * Math.sin(th);
+      const y = r * Math.cos(th) * STRETCH;
+      if (y &lt; -3.0) break;
+      pts.push(V(rho * Math.cos(phi), y, rho * Math.sin(phi)));</pre>
+      </div>
+      <!-- 5 Sound -->
+      <div class="ctr h" id="h5" style="top: 120px"><span class="w">Mit</span> <span class="w">eigenem</span> <span class="w">Sound.</span></div>
+      <div id="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <!-- 6 Outro -->
+      <div class="ctr h" id="h6" style="top: 96px"><span class="w">Wissen</span> <span class="w">in</span> <span class="w">30</span> <span class="w">Sekunden.</span></div>
+      <div class="ctr sub" id="s6" style="top: 196px">Drei Folgen. Faktengeprüft. Jedes Bild aus Code.</div>
+      <div class="cap" id="ck6" style="left: 183px; width: 349px">FOLGE 1<small>KONTAKTLOS BEZAHLEN</small></div>
+      <div class="cap" id="cb6" style="left: 580px; width: 349px">FOLGE 2<small>BLOOD FALLS</small></div>
+      <div class="cap" id="ca6" style="left: 977px; width: 760px">FOLGE 3<small>AIRPODS</small></div>
+      <div class="ctr" id="tag6" style="top: 1022px; font-size: 18px; font-weight: 700; letter-spacing: 0.26em; color: #5d6066; opacity: 0">HYPERFRAMES · THREE.JS · GSAP</div>
+
+      <div id="flash"></div>
+      <audio id="music" src="assets/music.wav" data-start="0" data-duration="20" data-volume="1" data-track-index="9"></audio>
+    </div>
+
+    <script>
+      // Code einfärben (einfacher, deterministischer Tokenizer) und in Zeilen teilen
+      const pre = document.getElementById("src");
+      const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const color = (line) => {
+        if (/^\s*\/\//.test(line)) return `<span class="cm">${esc(line)}</span>`;
+        return esc(line)
+          .replace(/\b(const|let|for|if|break)\b/g, '<span class="kw">$1</span>')
+          .replace(/\b(Math\.(?:PI|sin|cos|asin|sqrt)|lerp|V|forEach|push)\b/g, '<span class="fn">$1</span>')
+          .replace(/(^|[^\w.])(\d+(?:\.\d+)?)/g, '$1<span class="nu">$2</span>');
+      };
+      const lines = pre.textContent.replace(/^\n/, "").split("\n");
+      pre.innerHTML = lines.map((l, i) => `<span class="ln" id="ln${i}">${i === 8 ? '<span class="hl" id="hl"></span>' : ""}${color(l) || " "}</span>`).join("");
+
+      const tl = gsap.timeline({ paused: true });
+      const words = (sel, at, st) => tl.fromTo(sel + " .w", { opacity: 0, filter: "blur(10px)", y: 10 }, { opacity: 1, filter: "blur(0px)", y: 0, duration: 0.22, ease: "power3.out", stagger: st || 0.08 }, at);
+      const fadeIn = (sel, at, d) => tl.fromTo(sel, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: d || 0.3, ease: "power3.out" }, at);
+      const out = (sel, at) => tl.to(sel, { opacity: 0, filter: "blur(8px)", y: -16, duration: 0.18, ease: "power3.in" }, at);
+      const flash = (at, o) => {
+        tl.set("#flash", { opacity: o }, at);
+        tl.to("#flash", { opacity: 0, duration: 0.25, ease: "power2.out" }, at + 0.02);
+      };
+      tl.set("#flash", { opacity: 0 }, 0);
+
+      // 1 HOOK: drei Einschläge auf den Schlägen
+      [["#fk", 0.0, -3], ["#fb", 0.8, 2], ["#fa", 1.6, -2]].forEach(([id, at, rot]) => {
+        tl.fromTo(id, { opacity: 0, x: 0, y: 0, scale: 1.28, rotation: rot, filter: "blur(14px)" }, { opacity: 1, x: 0, y: 0, scale: 1, rotation: 0, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, at);
+        [[10, 0.033], [-8, 0.066], [4, 0.1], [0, 0.133]].forEach(([x, d]) => tl.set(id, { x: x }, at + 0.3 + d));
+        flash(at, 0.16);
+      });
+
+      // 2 REVEAL
+      tl.fromTo("#h2 .w:nth-of-type(-n+2)", { opacity: 0, filter: "blur(10px)", y: 10 }, { opacity: 1, filter: "blur(0px)", y: 0, duration: 0.22, ease: "power3.out", stagger: 0.1 }, 0.1);
+      tl.fromTo("#h2 .w:nth-of-type(n+3)", { opacity: 0, filter: "blur(10px)", y: 10 }, { opacity: 1, filter: "blur(0px)", y: 0, duration: 0.22, ease: "power3.out", stagger: 0.08 }, 2.4);
+      fadeIn("#s2", 3.1);
+      out(["#h2", "#s2"], 5.4);
+
+      // 3 RÖNTGEN (Schnitt in allen Rahmen zugleich)
+      flash(5.6, 0.22);
+      words("#h3", 5.62, 0.08);
+      ["#ck3", "#cb3", "#ca3"].forEach((id, i) => fadeIn(id, 5.8 + i * 0.1));
+      out(["#h3", "#ck3", "#cb3", "#ca3"], 8.56);
+
+      // 4 CODE: B und A raus, K nach rechts groß, Code tippt sich
+      tl.to("#fb", { x: -120, y: 40, opacity: 0, filter: "blur(10px)", duration: 0.25, ease: "power3.in" }, 8.52);
+      tl.to("#fa", { x: 180, y: 40, opacity: 0, filter: "blur(10px)", duration: 0.25, ease: "power3.in" }, 8.52);
+      tl.to("#fk", { x: 1122, y: 12, scale: 1.25, duration: 0.5, ease: "expo.out" }, 8.8);
+      tl.fromTo("#code", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.45, ease: "expo.out" }, 8.8);
+      words("#h4", 8.85, 0.08);
+      lines.forEach((_, i) => tl.fromTo(`#ln${i}`, { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.16, ease: "power2.out" }, 8.9 + i * 0.2));
+      tl.fromTo("#hl", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 10.6);
+      out(["#h4", "#code"], 12.56);
+      tl.to("#fk", { x: 1300, opacity: 0, filter: "blur(10px)", duration: 0.25, ease: "power3.in" }, 12.52);
+
+      // 5 SOUND: AirPods groß, Equalizer bleibt bei „Stille“ einen Schlag flach
+      tl.set("#fa", { x: -397, y: 12, scale: 1.45, opacity: 0, filter: "blur(12px)" }, 12.8);
+      tl.to("#fa", { opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "expo.out" }, 12.8);
+      words("#h5", 12.85, 0.08);
+      fadeIn("#eq", 13.0);
+      let seed = 7;
+      const rnd = () => ((seed = (Math.imul(seed, 1103515245) + 12345) >>> 0) % 1000) / 1000;
+      const bars = document.querySelectorAll("#eq i");
+      for (let t = 12.8; t < 15.99; t += 0.2) {
+        const quiet = t >= 13.99 && t < 14.39;
+        bars.forEach((b, j) => tl.set(b, { scaleY: quiet ? 1 : 2 + rnd() * 6.5 }, +t.toFixed(2)));
+      }
+      out(["#h5", "#eq"], 15.76);
+
+      // 6 OUTRO: alle drei zurück in die Reihe
+      tl.to("#fa", { x: 0, y: 0, scale: 1, duration: 0.5, ease: "expo.out" }, 16.0);
+      tl.set("#fk", { x: -160, y: 0, scale: 1, opacity: 0, filter: "blur(10px)" }, 16.0);
+      tl.to("#fk", { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, 16.0);
+      tl.set("#fb", { x: -80, y: 0, opacity: 0, filter: "blur(10px)" }, 16.08);
+      tl.to("#fb", { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, 16.08);
+      flash(16.0, 0.2);
+      words("#h6", 16.05, 0.08);
+      fadeIn("#s6", 16.6);
+      ["#ck6", "#cb6", "#ca6"].forEach((id, i) => fadeIn(id, 16.5 + i * 0.12));
+      fadeIn("#tag6", 17.2, 0.4);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
