@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="de" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #111111;
+        --ink: #ffffff;
+        --grey: #8d8f94;
+        --blue: #3d8bff;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+        font-family: "Inter", sans-serif;
+        color: var(--ink);
+      }
+      #bg {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(900px 700px at 62% 50%, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 70%),
+          radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.55) 100%);
+      }
+      /* Handy-Rahmen um die echten Videos */
+      .phone {
+        position: absolute;
+        top: 110px;
+        width: 484px;
+        height: 860px;
+        border-radius: 48px;
+        background: #050505;
+        border: 2px solid #2e2f33;
+        box-shadow:
+          0 40px 90px rgba(0, 0, 0, 0.55),
+          inset 0 0 0 8px #0b0b0c;
+        opacity: 0;
+      }
+      .screen {
+        position: absolute;
+        inset: 12px;
+        border-radius: 36px;
+        overflow: hidden;
+        background: #111;
+      }
+      .screen video {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .copy {
+        position: absolute;
+        left: 140px;
+        width: 720px;
+        top: 0;
+        height: 1080px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .h {
+        font-size: 92px;
+        font-weight: 700;
+        line-height: 1.04;
+        letter-spacing: -0.03em;
+      }
+      .h .w {
+        display: inline-block;
+        opacity: 0;
+      }
+      .line {
+        display: block;
+        opacity: 0;
+      }
+      .grey {
+        color: var(--grey);
+      }
+      .kicker {
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--grey);
+        margin-bottom: 28px;
+        opacity: 0;
+      }
+      .fact {
+        margin-top: 48px;
+        font-size: 50px;
+        font-weight: 400;
+        line-height: 1.25;
+      }
+      .fact .old {
+        position: relative;
+        display: inline-block;
+        color: var(--grey);
+        opacity: 0;
+      }
+      .fact .strike {
+        position: absolute;
+        left: -6px;
+        right: -6px;
+        top: 52%;
+        height: 5px;
+        background: #ff4d4d;
+        transform-origin: left center;
+        transform: scaleX(0);
+      }
+      .fact .new {
+        display: block;
+        margin-top: 14px;
+        font-weight: 700;
+        opacity: 0;
+      }
+      .fact .arrow {
+        color: #39ff7a;
+        margin-right: 18px;
+      }
+      .dots {
+        opacity: 0;
+        margin-top: 56px;
+        display: flex;
+        gap: 22px;
+      }
+      .dot {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 2px solid #3a3b40;
+        background: transparent;
+      }
+      .sub {
+        font-size: 40px;
+        font-weight: 400;
+        line-height: 1.35;
+        color: var(--grey);
+        opacity: 0;
+      }
+      .sub b {
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .tech {
+        margin-top: 40px;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--grey);
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="21" data-width="1920" data-height="1080">
+      <div id="bg"></div>
+
+      <!-- 1 HOOK -->
+      <div id="s1-copy" class="copy">
+        <div class="h" id="s1-h"><span class="w">Warum</span> <span class="w">blutet</span><br /><span class="w">dieser</span> <span class="w">Gletscher?</span></div>
+      </div>
+      <div id="ph1" class="phone" style="left: 1240px">
+        <div class="screen">
+          <video id="v1" class="clip" src="assets/bloodfalls.mp4" muted playsinline data-start="0" data-duration="2.5" data-media-start="1.5" data-track-index="1"></video>
+        </div>
+      </div>
+
+      <!-- 2 REVEAL -->
+      <div id="s2-copy" class="copy">
+        <div class="h" style="font-size: 72px">
+          <span class="line" id="s2-l1">Zwei Erklärvideos.</span>
+          <span class="line" id="s2-l2">30 Sekunden.</span>
+          <span class="line grey" id="s2-l3">Komplett aus Code.</span>
+        </div>
+      </div>
+      <div id="ph2a" class="phone" style="left: 900px">
+        <div class="screen">
+          <video id="v2a" class="clip" src="assets/kontaktlos.mp4" muted playsinline data-start="2.5" data-duration="3.5" data-media-start="2.0" data-track-index="2"></video>
+        </div>
+      </div>
+      <div id="ph2b" class="phone" style="left: 1408px">
+        <div class="screen">
+          <video id="v2b" class="clip" src="assets/bloodfalls.mp4" muted playsinline data-start="2.5" data-duration="3.5" data-media-start="26.0" data-track-index="3"></video>
+        </div>
+      </div>
+
+      <!-- 3 RÖNTGENBLICK -->
+      <div id="s3-copy" class="copy">
+        <div class="h" id="s3-h"><span class="w">Röntgenblick</span><br /><span class="w grey">ins</span> <span class="w grey">Innere.</span></div>
+      </div>
+      <div id="ph3a" class="phone" style="left: 900px">
+        <div class="screen">
+          <video id="v3a" class="clip" src="assets/kontaktlos.mp4" muted playsinline data-start="6" data-duration="4" data-media-start="8.6" data-track-index="2"></video>
+        </div>
+      </div>
+      <div id="ph3b" class="phone" style="left: 1408px">
+        <div class="screen">
+          <video id="v3b" class="clip" src="assets/bloodfalls.mp4" muted playsinline data-start="6" data-duration="4" data-media-start="8.6" data-track-index="3"></video>
+        </div>
+      </div>
+
+      <!-- 4 FAKTENCHECK -->
+      <div id="s4-copy" class="copy">
+        <div class="kicker" id="s4-k">Faktencheck · Folge 1</div>
+        <div class="h" id="s4-h"><span class="w">Erst</span> <span class="w">prüfen,</span><br /><span class="w">dann</span> <span class="w">rendern.</span></div>
+        <div class="fact">
+          <span class="old" id="s4-old">„statt deiner Kartennummer“<span class="strike" id="s4-strike"></span></span>
+          <span class="new" id="s4-new"><span class="arrow">→</span>„für jede Zahlung neu“</span>
+        </div>
+      </div>
+      <div id="ph4" class="phone" style="left: 1240px">
+        <div class="screen">
+          <video id="v4" class="clip" src="assets/kontaktlos.mp4" muted playsinline data-start="10" data-duration="4" data-media-start="25.9" data-track-index="2"></video>
+        </div>
+      </div>
+
+      <!-- 5 AKZENTFARBEN: Schnitt auf jedem Schlag -->
+      <div id="s5-copy" class="copy">
+        <div class="h" id="s5-h"><span class="w">Eine</span> <span class="w">Akzentfarbe</span><br /><span class="w grey">pro</span> <span class="w grey">Szene.</span></div>
+        <div class="dots" id="s5-dots">
+          <div class="dot" data-c="#39ff7a"></div>
+          <div class="dot" data-c="#d9844a"></div>
+          <div class="dot" data-c="#e9c36a"></div>
+          <div class="dot" data-c="#8fd6ff"></div>
+          <div class="dot" data-c="#2fa9c9"></div>
+          <div class="dot" data-c="#e0262e"></div>
+        </div>
+      </div>
+      <div id="ph5" class="phone" style="left: 1240px">
+        <div class="screen">
+          <video id="v5a" class="clip" src="assets/kontaktlos.mp4" muted playsinline data-start="14" data-duration="0.5" data-media-start="2.7" data-track-index="2"></video>
+          <video id="v5b" class="clip" src="assets/kontaktlos.mp4" muted playsinline data-start="14.5" data-duration="0.5" data-media-start="10.6" data-track-index="3"></video>
+          <video id="v5c" class="clip" src="assets/kontaktlos.mp4" muted playsinline data-start="15" data-duration="0.5" data-media-start="15.4" data-track-index="2"></video>
+          <video id="v5d" class="clip" src="assets/bloodfalls.mp4" muted playsinline data-start="15.5" data-duration="0.5" data-media-start="10.2" data-track-index="3"></video>
+          <video id="v5e" class="clip" src="assets/bloodfalls.mp4" muted playsinline data-start="16" data-duration="0.5" data-media-start="14.6" data-track-index="2"></video>
+          <video id="v5f" class="clip" src="assets/bloodfalls.mp4" muted playsinline data-start="16.5" data-duration="0.5" data-media-start="19.6" data-track-index="3"></video>
+        </div>
+      </div>
+
+      <!-- 6 OUTRO -->
+      <div id="s6-copy" class="copy">
+        <div class="h" id="s6-h"><span class="w">Wissen</span> <span class="w">in</span><br /><span class="w">30</span> <span class="w">Sekunden.</span></div>
+        <div style="margin-top: 44px">
+          <div class="sub" id="s6-a"><b>Folge 1</b> · Kontaktlos bezahlen</div>
+          <div class="sub" id="s6-b"><b>Folge 2</b> · Blood Falls</div>
+        </div>
+        <div class="tech" id="s6-t">HyperFrames · Three.js · GSAP</div>
+      </div>
+      <div id="ph6a" class="phone" style="left: 900px">
+        <div class="screen">
+          <video id="v6a" class="clip" src="assets/kontaktlos.mp4" muted playsinline data-start="17" data-duration="4" data-media-start="2.2" data-track-index="2"></video>
+        </div>
+      </div>
+      <div id="ph6b" class="phone" style="left: 1408px">
+        <div class="screen">
+          <video id="v6b" class="clip" src="assets/bloodfalls.mp4" muted playsinline data-start="17" data-duration="4" data-media-start="25.6" data-track-index="3"></video>
+        </div>
+      </div>
+
+      <audio id="music" src="assets/music.wav" data-start="0" data-duration="21" data-volume="1" data-track-index="9"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const IN = { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.45, ease: "expo.out" };
+
+      // Wörter einzeln: Unschärfe -> scharf
+      function words(sel, at, stagger) {
+        tl.fromTo(sel + " .w", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.22, ease: "power3.out", stagger: stagger || 0.08 }, at);
+      }
+      function phoneIn(id, at, dx) {
+        tl.fromTo(id, { opacity: 0, x: dx || 0, y: 70, scale: 0.96 }, { opacity: 1, x: 0, y: 0, scale: 1, duration: 0.55, ease: "expo.out" }, at);
+      }
+      // Abgang 45 % kürzer als Auftritt; endet vor dem Schnitt
+      function out(ids, end) {
+        tl.to(ids, { opacity: 0, y: -30, filter: "blur(8px)", duration: 0.25, ease: "power3.in" }, end - 0.3);
+      }
+
+      // 1 HOOK: Handy steht ab Bild 0, die Frage blendet wortweise ein
+      tl.fromTo("#ph1", { opacity: 1, y: 0 }, { opacity: 1, y: 0, duration: 0.01 }, 0);
+      words("#s1-h", 0.1, 0.09);
+      out(["#s1-h", "#ph1"], 2.5);
+
+      // 2 REVEAL: Zeilen auf Schlägen
+      phoneIn("#ph2a", 2.5, -40);
+      phoneIn("#ph2b", 2.6, 40);
+      ["#s2-l1", "#s2-l2", "#s2-l3"].forEach((id, i) => {
+        tl.fromTo(id, { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power3.out" }, 2.5 + i * 0.5);
+      });
+      out(["#s2-copy", "#ph2a", "#ph2b"], 6);
+
+      // 3 RÖNTGENBLICK
+      phoneIn("#ph3a", 6.0, -40);
+      phoneIn("#ph3b", 6.1, 40);
+      words("#s3-h", 6.0, 0.12);
+      out(["#s3-copy", "#ph3a", "#ph3b"], 10);
+
+      // 4 FAKTENCHECK: alte Zeile durchgestrichen, neue erscheint
+      phoneIn("#ph4", 10.0, 40);
+      tl.fromTo("#s4-k", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 10.0);
+      words("#s4-h", 10.0, 0.08);
+      tl.fromTo("#s4-old", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power3.out" }, 10.5);
+      tl.fromTo("#s4-strike", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power2.inOut" }, 11.0);
+      tl.to("#s4-old", { opacity: 0.55, duration: 0.3, ease: "power1.out" }, 11.2);
+      tl.fromTo("#s4-new", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 11.5);
+      out(["#s4-copy", "#ph4"], 14);
+
+      // 5 AKZENTFARBEN: Punkt füllt sich mit jedem Schnitt
+      tl.fromTo("#ph5", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.35, ease: "expo.out" }, 14.0);
+      words("#s5-h", 14.0, 0.06);
+      tl.fromTo("#s5-dots", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, 14.0);
+      document.querySelectorAll("#s5-dots .dot").forEach((d, i) => {
+        const c = d.getAttribute("data-c");
+        tl.fromTo(d, { backgroundColor: "rgba(0,0,0,0)", borderColor: "#3a3b40", scale: 1 }, { backgroundColor: c, borderColor: c, scale: 1, duration: 0.15, ease: "power2.out" }, 14.0 + i * 0.5);
+      });
+      out(["#s5-copy", "#ph5"], 17);
+
+      // 6 OUTRO
+      phoneIn("#ph6a", 17.0, -40);
+      phoneIn("#ph6b", 17.1, 40);
+      words("#s6-h", 17.0, 0.09);
+      tl.fromTo("#s6-a", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 17.5);
+      tl.fromTo("#s6-b", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power3.out" }, 18.0);
+      tl.fromTo("#s6-t", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 18.5);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

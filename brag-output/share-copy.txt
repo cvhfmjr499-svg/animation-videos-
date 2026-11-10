@@ -1,0 +1,1 @@
+Warum blutet ein Gletscher in der Antarktis, und warum braucht deine Bankkarte keinen Akku? Zwei 3D-Erklärvideos, je 30 Sekunden, mit Röntgenblick und Faktencheck, komplett aus Code gebaut (HyperFrames, Three.js, GSAP).
