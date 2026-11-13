@@ -168,9 +168,8 @@ for (let k = 0; G0 + k < G1 - 0.01; k++) {
 // UI: tap on "Live", rooms list, whips
 click(C.tap, 0.22, 1400); pluck(C.tap, 84, 0.1);
 [0, 0.08, 0.16, 0.24].forEach((d, i) => pluck(C.tap + 0.2 + d, [76, 79, 83, 88][i], 0.06, -0.3 + i * 0.2));
-C.whips.forEach((t, i) => whoosh(t - 0.15, 0.5, 0.5, i ? -0.8 : 0.8, i ? 0.8 : -0.8));
+C.swooshes.forEach((t, i) => whoosh(t, 0.7, 0.28, i ? -0.6 : 0.6, i ? 0.6 : -0.6));
 // room: reactions + comments + sync badge
-boom(C.scenes.room, 0.35, 110, 45);
 C.reactions.forEach((t, i) => pluck(t, [88, 91, 93, 95, 98, 100][i], 0.05, 0.7));
 C.comments.forEach(t => { click(t, 0.12, 1700, 0.4); pluck(t, 81, 0.06, 0.4); });
 sparkle(3.1, 93, 0.05);
@@ -179,11 +178,10 @@ const TX = C.text;
 pluck(TX.listen, 76, 0.08); [0, 0.07, 0.14, 0.21].forEach((d, i) => pluck(TX.friends - 0.3 + d, [79, 83, 86, 88][i], 0.06, -0.4 + i * 0.27));
 sparkle(TX.friends, 88, 0.05);
 pluck(TX.same1, 76, 0.08); pluck(TX.same2, 79, 0.08); sparkle(TX.same2 + 0.12, 91, 0.05);
-pluck(TX.wherever, 81, 0.08); sparkle(TX.wherever + 0.2, 93, 0.05);
-whoosh(6.05, 0.35, 0.18, 0, 0); whoosh(7.1, 0.35, 0.18, 0, 0);
-riser(7.55, 8.28, 0.3);
+whoosh(6.2, 0.45, 0.15, 0, 0);
+riser(7.4, 8.28, 0.26);
 // logo
-boom(G1, 1.0, 140, 36);
+boom(G1, 0.8, 120, 36);
 pad(G1, 10.0, [45, 57, 60, 64, 67, 71, 74], 0.08, 0.04, 1.0, 0.055);   // Am11 shimmer
 sparkle(G1 + 0.9, 96, 0.06); pluck(G1 + 0.9, 88, 0.07);
 [0, 0.1, 0.2].forEach((d, i) => pluck(G1 + 1.1 + d, [81, 84, 88][i], 0.05, (i - 1) * 0.4));

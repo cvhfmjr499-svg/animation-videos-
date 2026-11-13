@@ -9,10 +9,10 @@
     groove: [0.0, 8.3],
     scenes: { home: 0, room: 2.6, text: 4.6, logo: 8.3 },
     tap: 1.15,                      // finger taps the "Live" chip
-    whips: [2.45, 4.35],            // fast camera moves (motion-blurred)
+    swooshes: [2.3, 4.15],         // soft camera glides (sound only)
     reactions: [3.0, 3.3, 3.55, 3.8, 4.0, 4.15],
     comments: [3.2, 3.7],
-    text: { listen: 4.75, friends: 5.35, same1: 6.25, same2: 6.7, wherever: 7.35 },
+    text: { listen: 4.7, friends: 5.2, same1: 6.45, same2: 6.8 },
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = CUES;
   else root.CUES = CUES;

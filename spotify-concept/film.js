@@ -169,13 +169,38 @@
     return frames[frames.length - 1].slice(1);
   };
 
+  // Cubic Hermite spline through camera keys [t, cx, cy, scale]: velocity never drops to zero mid-move.
+  function spline(t, K) {
+    const n = K.length - 1;
+    if (t <= K[0][0]) return K[0].slice(1);
+    if (t >= K[n][0]) return K[n].slice(1);
+    let i = 0; while (K[i + 1][0] < t) i++;
+    const t0 = K[i][0], t1 = K[i + 1][0], h = t1 - t0, u = (t - t0) / h;
+    const tan = (j, d) => (j === 0 || j === n) ? 0 : (K[j + 1][d] - K[j - 1][d]) / (K[j + 1][0] - K[j - 1][0]);
+    const h00 = 2 * u ** 3 - 3 * u ** 2 + 1, h10 = u ** 3 - 2 * u ** 2 + u, h01 = -2 * u ** 3 + 3 * u ** 2, h11 = u ** 3 - u ** 2;
+    return [1, 2, 3].map(d => h00 * K[i][d] + h10 * h * tan(i, d) + h01 * K[i + 1][d] + h11 * h * tan(i + 1, d));
+  }
+  // One tall page: home on top, the room 1100 px below — the camera glides down instead of zooming.
+  const ROOM_Y = 1100;
+  const CAM = [[0, 760, 300, 1.62], [1.15, 880, 275, 1.5], [2.0, 960, 430, 1.36], [2.9, 960, 1150, 1.3], [3.6, 900, 1580, 1.3], [4.6, 1120, 1650, 1.36]];
+  function scenePage(t) {
+    ambient(t, t < 3 ? 1 : 1.15);
+    const [cx, cy, sc] = spline(t, CAM);
+    const out = E.inOutSine(inv(4.15, 4.6, t));       // soft depth-of-field dissolve into the copy
+    ctx.save();
+    ctx.globalAlpha = 1 - out;
+    if (out > 0.01) ctx.filter = `blur(${out * 22}px)`;
+    camera(cx, cy, sc * (1 + out * 0.06));
+    sceneHome(t);
+    ctx.save(); ctx.translate(0, ROOM_Y); sceneRoom(t); ctx.restore();
+    ctx.restore();
+  }
+
   // ---------- scene 1: home → Live chip → Live Rooms list ----------
   const ROOMS = [['Late Night Drive', 'Neon Rain · Kairo', 3, 0, 7], ['Gym Session', 'Run It Up · VANTA', 9, 1, 4], ['Study Lofi', 'Paper Moons · Elio', 4, 2, 12]];
   function sceneHome(t) {
-    ambient(t);
-    const tap = C.tap, sw = E.inOutCubic(inv(tap + 0.05, tap + 0.45, t));
-    const [cx, cy, s] = key(t, [[0, 760, 300, 1.75], [1.1, 900, 280, 1.5], [1.5, 960, 380, 1.35], [2.2, 900, 420, 1.45], [2.6, 820, 400, 3.4]], E.inOutSine);
-    ctx.save(); camera(cx, cy, s);
+    const tap = C.tap, sw = E.inOutSine(inv(tap + 0.05, tap + 0.6, t)), tilesOut = E.inOutSine(inv(tap + 0.05, tap + 0.35, t));
+    ctx.save();
     // chips row
     const y0 = 190; let x = 470;
     avatar(0, x + 32, y0 + 32, 32); x += 84;
@@ -192,8 +217,8 @@
       if (rp > 0) { ctx.strokeStyle = `rgba(255,255,255,${0.6 * (1 - rp)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(fx, fy, 26 + rp * 90, 0, TAU); ctx.stroke(); }
     }
     // default tiles (fade out on tap)
-    if (sw < 1) {
-      ctx.save(); ctx.globalAlpha = 1 - sw; ctx.translate(0, -sw * 30);
+    if (tilesOut < 1) {
+      ctx.save(); ctx.globalAlpha = 1 - tilesOut; ctx.translate(0, -tilesOut * 30);
       const tiles = [['Liked Songs', 'heart'], ['Your Episodes', 'mark'], ['Night Drive', 1], ['Focus Flow', 4], ['Kairo Radio', 2], ['Weekend Mix', 3]];
       tiles.forEach(([name, ic], i) => {
         const tx = 470 + (i % 2) * 560, ty = 290 + ((i / 2) | 0) * 120, fade = i >= 4 ? 0.45 : 1;
@@ -211,7 +236,7 @@
     }
     // live rooms list
     if (sw > 0) {
-      const ap = (i) => E.outExpo(inv(tap + 0.2 + i * 0.08, tap + 0.8 + i * 0.08, t));
+      const ap = (i) => E.outCubic(inv(tap + 0.25 + i * 0.1, tap + 1.0 + i * 0.1, t));
       ctx.save(); ctx.globalAlpha = ap(0); ctx.translate(0, (1 - ap(0)) * 40);
       txt('Live Rooms', 470, 345, { font: DISP(700, 52) });
       const pulse = 0.5 + 0.5 * Math.sin(t * 8);
@@ -241,10 +266,8 @@
   // ---------- scene 2: inside the room ----------
   const EMO = ['❤️', '🔥', '🎧', '🔥', '❤️', '✨'];
   function sceneRoom(t) {
-    ambient(t, 1.2);
-    const [cx, cy, s] = key(t, [[2.6, 700, 470, 2.4], [3.0, 760, 480, 1.35], [3.6, 980, 520, 1.3], [4.2, 1180, 560, 1.38], [4.6, 1500, 560, 1.6]], E.inOutSine);
-    ctx.save(); camera(cx, cy, s);
-    const bp = beatPulse(t);
+    ctx.save();
+    const bp = beatPulse(t) * 0.6;
     // cover
     ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 20;
     const cs = 440 * (1 + 0.01 * bp); rr(300, 260, cs, cs, 14); ctx.fillStyle = '#000'; ctx.fill(); ctx.restore();
@@ -257,7 +280,7 @@
     txt('Late Night Drive', x0, 400, { font: DISP(800, 84), ls: -1 });
     txt('Neon Rain · Kairo', x0, 456, { font: SANS(500, 34), color: GRAY });
     // listeners, rings pulse on the beat (everyone hears the same beat)
-    for (let k = 0; k < 5; k++) avatar(k, x0 + 40 + k * 92, 545, 36, 0.4 + 0.6 * bp);
+    for (let k = 0; k < 5; k++) avatar(k, x0 + 40 + k * 92, 545, 36, 0.55 + 0.45 * bp);
     txt('+7 listening', x0 + 500, 556, { font: SANS(600, 30), color: GRAY });
     // shared progress bar with stacked playheads
     const px = x0, py = 640, pw = 860, p = lerp(0.48, 0.6, inv(2.6, 4.6, t));
@@ -267,7 +290,7 @@
     const sec = Math.floor(97 + (t - 2.6) * 1); txt(`${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`, px, py + 50, { font: SANS(500, 24), color: GRAY });
     txt('3:22', px + pw, py + 50, { font: SANS(500, 24), color: GRAY, align: 'right' });
     // sync badge
-    const sb = E.outBack(inv(3.1, 3.5, t));
+    const sb = E.outCubic(inv(3.1, 3.6, t));
     if (sb > 0) {
       ctx.save(); ctx.translate(px + pw * p, py + 78); ctx.scale(sb, sb);
       rr(-120, -30, 240, 60, 30); ctx.fillStyle = '#0f2a18'; ctx.fill(); ctx.strokeStyle = rgba(GREEN, 0.8); ctx.lineWidth = 2; ctx.stroke();
@@ -278,7 +301,7 @@
     // comments
     const COM = [[0, 'this drop though'], [2, 'on repeat all night']];
     C.comments.forEach((tc, i) => {
-      const e = E.outExpo(inv(tc, tc + 0.5, t)); if (e <= 0) return;
+      const e = E.outCubic(inv(tc, tc + 0.7, t)); if (e <= 0) return;
       const [who, msg] = COM[i], bx = 1230, by = 760 + i * 100;
       ctx.save(); ctx.globalAlpha = Math.min(1, e * 2); ctx.translate((1 - e) * 60, 0);
       const f = SANS(500, 28), w = measure(msg, f) + 130;
@@ -305,11 +328,11 @@
     const mid = total / 2;
     let acc = 0;
     chars.forEach((ch, i) => {
-      const a = t0 + i * (o.stagger ?? 0.025), p = inv(a, a + (o.dur ?? 0.55), t);
+      const a = t0 + i * (o.stagger ?? 0.022), p = inv(a, a + (o.dur ?? 0.75), t);
       if (p > 0) {
-        const e = E.outExpo(p), off = ((acc + ws[i] / 2) - mid) * 0.9 * (1 - e);
-        ctx.save(); ctx.globalAlpha *= Math.min(1, p * 2);
-        if (e < 0.97) ctx.filter = `blur(${(1 - e) * 8}px)`;
+        const e = E.outCubic(p), off = ((acc + ws[i] / 2) - mid) * 0.7 * (1 - e);
+        ctx.save(); ctx.globalAlpha *= E.inOutSine(Math.min(1, p * 1.4));
+        if (e < 0.97) ctx.filter = `blur(${(1 - e) * 10}px)`;
         txt(ch, cx + acc + off, y, { font, color, glow: o.glow, glowColor: o.glowColor });
         ctx.restore();
       }
@@ -321,38 +344,28 @@
     ambient(t, 0.8);
     const T = C.text, f = SANS(500, 92);
     // A: "Listen with your [avatars] friends."
-    const outA = E.inCubic(inv(6.05, 6.25, t));
-    if (t < 6.25) {
+    const outA = E.inOutSine(inv(6.2, 6.5, t));
+    if (t < 6.5) {
       ctx.save(); ctx.globalAlpha = 1 - outA; if (outA > 0) ctx.filter = `blur(${outA * 14}px)`;
-      const w1 = measure('Listen with your ', f), w2 = 300, w3 = measure('friends.', f), total = w1 + w2 + w3;
+      const w1 = measure('Listen with your ', f), w2 = 330, w3 = measure('friends.', f), total = w1 + w2 + w3;
       const x = W / 2 - total / 2, y = 575;
       spread('Listen with your', x, y, t, T.listen, f, WHITE);
       // avatar cluster pops in one by one
       for (let k = 0; k < 4; k++) {
-        const e = E.outBack(inv(T.friends - 0.3 + k * 0.07, T.friends + 0.1 + k * 0.07, t)); if (e <= 0) continue;
-        ctx.save(); ctx.translate(x + w1 + 50 + k * 56, y - 30); ctx.scale(e, e); avatar(k, 0, 0, 38, 0.9); ctx.restore();
+        const e = E.outCubic(inv(T.friends - 0.1 + k * 0.08, T.friends + 0.5 + k * 0.08, t)); if (e <= 0) continue;
+        ctx.save(); ctx.globalAlpha *= e; ctx.translate(x + w1 + 66 + k * 56, y - 30 + (1 - e) * 20); ctx.scale(lerp(0.7, 1, e), lerp(0.7, 1, e)); avatar(k, 0, 0, 38, 0.9); ctx.restore();
       }
       spread('friends.', x + w1 + w2, y, t, T.friends, f, GREEN, { glow: 30, glowColor: 'rgba(30,215,96,0.5)' });
       ctx.restore();
     }
     // B: "Same song. / Same second."
-    const outB = E.inCubic(inv(7.15, 7.35, t));
-    if (t > 6.2 && t < 7.35) {
+    const outB = E.inOutSine(inv(8.0, 8.32, t));
+    if (t > 6.45 && t < 8.32) {
       ctx.save(); ctx.globalAlpha = 1 - outB; if (outB > 0) ctx.filter = `blur(${outB * 14}px)`;
       spread('Same song.', W / 2, 500, t, T.same1, SANS(600, 110), WHITE, { align: 'center' });
       const sw = measure('Same ', SANS(600, 110)), tw = sw + measure('second.', SANS(600, 110));
       spread('Same ', W / 2 - tw / 2, 650, t, T.same2, SANS(600, 110), WHITE);
       spread('second.', W / 2 - tw / 2 + sw, 650, t, T.same2 + 0.12, SANS(600, 110), GREEN, { glow: 34, glowColor: 'rgba(30,215,96,0.55)' });
-      ctx.restore();
-    }
-    // C: "Wherever you are."
-    if (t > 7.3) {
-      const outC = E.inCubic(inv(8.1, 8.3, t));
-      ctx.save(); ctx.globalAlpha = 1 - outC; if (outC > 0) ctx.filter = `blur(${outC * 14}px)`;
-      const a = measure('Wherever ', f), b = measure('you', f), c = measure(' are.', f), x = W / 2 - (a + b + c) / 2;
-      spread('Wherever', x, 575, t, T.wherever, f, WHITE);
-      spread('you', x + a, 575, t, T.wherever + 0.2, f, GREEN, { glow: 30, glowColor: 'rgba(30,215,96,0.5)' });
-      spread(' are.', x + a + b, 575, t, T.wherever + 0.3, f, WHITE);
       ctx.restore();
     }
   }
@@ -361,14 +374,14 @@
   function sceneLogo(t) {
     ambient(t, 0.6 + 0.4 * E.outExpo(inv(8.3, 9.0, t)));
     const t0 = C.scenes.logo;
-    const pop = E.outBack(inv(t0, t0 + 0.45, t));
-    const slide = E.inOutCubic(inv(t0 + 0.45, t0 + 0.95, t));
+    const pop = E.outCubic(inv(t0, t0 + 0.6, t));
+    const slide = E.inOutSine(inv(t0 + 0.4, t0 + 1.15, t));
     const wf = DISP(800, 150), ww = measure('Spotify', wf), vf = DISP(700, 64), vw = measure('2.0', vf);
     const r = 82, gap = 40, total = r * 2 + gap + ww + 14 + vw;
     const cx = lerp(W / 2, W / 2 - total / 2 + r, slide), cy = 500;
     // badge: generic green circle with a "live" broadcast glyph (not the Spotify logo)
     if (pop > 0) {
-      ctx.save(); ctx.translate(cx, cy); ctx.scale(pop, pop);
+      ctx.save(); ctx.translate(cx, cy); ctx.globalAlpha *= pop; ctx.scale(lerp(0.6, 1, pop), lerp(0.6, 1, pop));
       ctx.shadowColor = 'rgba(30,215,96,0.7)'; ctx.shadowBlur = 60;
       ctx.fillStyle = rgba(GREEN); ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
       ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, 12, 0, TAU); ctx.fill();
@@ -384,8 +397,8 @@
       const wx = cx + r + gap - (1 - slide) * 140;
       ctx.globalAlpha = slide;
       txt('Spotify', wx, cy + 52, { font: wf, ls: -2 });
-      const vp = E.outBack(inv(t0 + 0.85, t0 + 1.2, t));
-      if (vp > 0) { ctx.save(); ctx.translate(wx + ww + 14 + vw / 2, cy - 30); ctx.scale(vp, vp); txt('2.0', 0, 0, { font: vf, color: GREEN, align: 'center', glow: 30, glowColor: 'rgba(30,215,96,0.6)' }); ctx.restore(); }
+      const vp = E.outCubic(inv(t0 + 0.95, t0 + 1.45, t));
+      if (vp > 0) { ctx.save(); ctx.translate(wx + ww + 14 + vw / 2, cy - 30); ctx.globalAlpha *= vp; ctx.translate(0, (1 - vp) * 14); txt('2.0', 0, 0, { font: vf, color: GREEN, align: 'center', glow: 30, glowColor: 'rgba(30,215,96,0.6)' }); ctx.restore(); }
       ctx.restore();
     }
     segLine([{ s: 'Introducing', font: SANS(500, 40), color: GRAY, t0: t0 + 1.05, dy: 20 }, { s: 'Live Rooms', font: SANS(700, 40), color: WHITE, t0: t0 + 1.15, dy: 20 }], W / 2, 680, t, { align: 'center', gap: 12 });
@@ -406,15 +419,14 @@
   const accCtx = acc.getContext('2d');
   function drawScene(t) {
     const S = C.scenes;
-    if (t < S.room) sceneHome(t);
-    else if (t < S.text) sceneRoom(t);
+    if (t < S.text) scenePage(t);
     else if (t < S.logo) sceneText(t);
     else sceneLogo(t);
   }
-  const blurAmount = t => Math.max(...C.whips.map(w => Math.exp(-Math.pow((t - (w + 0.08)) / 0.12, 2))), 0.25 * Math.exp(-Math.pow((t - 2.75) / 0.12, 2)));
   function render(t) {
     t = clamp(t, 0, DUR - 1e-4);
-    const b = blurAmount(t), N = b > 0.05 ? Math.round(4 + b * 12) : 1, shutter = 0.09 * b;
+    // 180° shutter on every frame (like a real camera): 6 sub-frames over half a frame
+    const N = 6, shutter = 0.5 / C.fps;
     if (N === 1) {
       ctx = mainCtx; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none';
       drawScene(t); ctx.restore();
@@ -429,10 +441,7 @@
       mainCtx.save(); mainCtx.globalAlpha = 1; mainCtx.drawImage(acc, 0, 0); mainCtx.restore();
     }
     ctx = mainCtx;
-    // dip to black inside the whip into the text section
-    const dip = Math.exp(-Math.pow((t - 4.6) / 0.1, 2));
-    if (dip > 0.01) { ctx.fillStyle = `rgba(0,0,0,${0.9 * dip})`; ctx.fillRect(0, 0, W, H); }
-    const fl = 0.35 * decay(t, C.scenes.logo, 8);
+    const fl = 0.12 * decay(t, C.scenes.logo, 6);
     if (fl > 0.005) { ctx.fillStyle = `rgba(200,255,220,${fl})`; ctx.fillRect(0, 0, W, H); }
     const fi = 1 - inv(0, 0.25, t); if (fi > 0) { ctx.fillStyle = `rgba(0,0,0,${fi})`; ctx.fillRect(0, 0, W, H); }
     const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 1.05);
